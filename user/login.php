@@ -1,4 +1,4 @@
-    <?php
+<?php
     session_start();
     require_once '../includes/config.php';
     require_once '../includes/db_connect.php';
@@ -92,4 +92,4 @@ if ($user->authenticate($email, $password)) {
             </div>
         </div>
     </body>
-    </html>
+    </html>
