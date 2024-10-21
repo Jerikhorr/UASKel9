@@ -1,4 +1,9 @@
 <?php
+$servername = "localhost";
+$username = "root"; // Sesuaikan jika berbeda
+$password = ""; // Sesuaikan jika ada password
+$database = "tugasevent";
+
 require_once 'config.php';
 
 function getDBConnection() {
