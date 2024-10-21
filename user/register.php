@@ -11,6 +11,16 @@ $nameErr = $emailErr = $passwordErr = $confirmPasswordErr = $roleErr = "";
 $name = $email = $password = $confirmPassword = "";
 $role = "user"; // Default role
 
+// Function to check if email exists in 'admin' or 'users' tables
+function isEmailExists($db, $email) {
+    $query = "SELECT 1 FROM users WHERE email = ? UNION SELECT 1 FROM admin WHERE email = ?";
+    $stmt = $db->prepare($query);
+    $stmt->bind_param('ss', $email, $email);
+    $stmt->execute();
+    return $stmt->fetch() ? true : false;
+}
+
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Validate name
     if (empty($_POST["name"])) {
@@ -29,6 +39,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $email = sanitizeInput($_POST["email"]);
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $emailErr = "Invalid email format";
+        } elseif (isEmailExists($db, $email)) {
+            $emailErr = "This email is already registered";
         }
     }
 
@@ -76,6 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
