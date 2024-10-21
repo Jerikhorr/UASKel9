@@ -4,42 +4,22 @@
     require_once '../includes/db_connect.php';
     require_once '../classes/User.php';
 
-    $db = getDBConnection();
-    $user = new User($db);
+$db = getDBConnection();
+$user = new User($db);
 
-    // Inisialisasi variabel
-    $email = $password = "";
-    $emailErr = $passwordErr = "";
+// Inisialisasi variabel
+$email = $password = "";
+$emailErr = $passwordErr = "";
 
-    if ($_SERVER["REQUEST_METHOD"] == "POST") {
-        // Validasi email
-        if (empty($_POST["email"])) {
-            $emailErr = "Email is required";
-        } else {
-            $email = sanitizeInput($_POST["email"]);
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                $emailErr = "Invalid email format";
-            }
-        }
-
-        // Validasi password
-        if (empty($_POST["password"])) {
-            $passwordErr = "Password is required";
-        } else {
-            $password = $_POST["password"];
-        }
-
-// After successful authentication
-if ($user->authenticate($email, $password)) {
-    // Set session for user
-    $_SESSION['user'] = $user->email;
-    $_SESSION['role'] = $user->is_admin ? 'admin' : 'user'; // Store role in session
-
-    // Redirect based on role
-    if ($user->is_admin) {
-        header("Location: ../admin/dashboard_admin.php");
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    // Validasi email
+    if (empty(trim($_POST["email"]))) {
+        $emailErr = "Email is required";
     } else {
-        header("Location: dashboard_user.php");
+        $email = sanitizeInput(trim($_POST["email"]));
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            $emailErr = "Invalid email format";
+        }
     }
     exit();
 } else {
@@ -47,7 +27,28 @@ if ($user->authenticate($email, $password)) {
 }
         
     }
-    ?>
+
+    // Authenticate user after validation
+    if (empty($emailErr) && empty($passwordErr)) {
+        if ($user->authenticate($email, $password)) {
+            // Set session for user
+            $_SESSION['user_id'] = $user->id; // Change to user_id for better clarity
+            $_SESSION['role'] = $user->is_admin ? 'admin' : 'user'; // Store role in session
+
+            // Redirect based on role
+            if ($user->is_admin) {
+                header("Location: ../admin/dashboard_admin.php");
+            } else {
+                header("Location: dashboard_user.php");
+            }
+            exit();
+        } else {
+            $error = "Invalid email or password";
+        }
+    }
+}
+?>
+
 
     <!DOCTYPE html>
     <html lang="en">
