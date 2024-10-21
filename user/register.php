@@ -11,6 +11,16 @@ $nameErr = $emailErr = $passwordErr = $confirmPasswordErr = $roleErr = "";
 $name = $email = $password = $confirmPassword = "";
 $role = "user"; // Default role
 
+// Function to check if email exists in 'admin' or 'users' tables
+function isEmailExists($db, $email) {
+    $query = "SELECT 1 FROM users WHERE email = ? UNION SELECT 1 FROM admin WHERE email = ?";
+    $stmt = $db->prepare($query);
+    $stmt->bind_param('ss', $email, $email);
+    $stmt->execute();
+    return $stmt->fetch() ? true : false;
+}
+
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Validate name
     if (empty($_POST["name"])) {
@@ -29,6 +39,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $email = sanitizeInput($_POST["email"]);
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $emailErr = "Invalid email format";
+        } elseif (isEmailExists($db, $email)) {
+            $emailErr = "This email is already registered";
         }
     }
 
@@ -77,6 +89,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -109,39 +122,80 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline <?php echo (!empty($emailErr)) ? 'border-red-500' : ''; ?>" id="email" type="email" name="email" value="<?php echo $email; ?>">
                 <p class="text-red-500 text-xs italic"><?php echo $emailErr; ?></p>
             </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
-                    Password
-                </label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline <?php echo (!empty($passwordErr)) ? 'border-red-500' : ''; ?>" id="password" type="password" name="password">
-                <p class="text-red-500 text-xs italic"><?php echo $passwordErr; ?></p>
+            <div class="mb-4 relative">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
+                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline <?php echo (!empty($passwordErr)) ? 'border-red-500' : ''; ?>" id="password" type="password" name="password" required>
+            <span class="absolute inset-y-0 right-0 top-4 pr-3 flex items-center text-gray-700">
+            <button type="button" onmousedown="showPassword()" onmouseup="hidePassword()" onmouseleave="hidePassword()" class="focus:outline-none">            <img src="https://img.icons8.com/ios-filled/16/000000/visible.png" id="passwordIcon" alt="Show Password" class="w-5 h-5"/></button>
+             </span>
+                <p class="text-red-500 text-xs italic"><?php echo $passwordErr; ?></p>  
             </div>
-            <div class="mb-6">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="confirm_password">
-                    Confirm Password
-                </label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline <?php echo (!empty($confirmPasswordErr)) ? 'border-red-500' : ''; ?>" id="confirm_password" type="password" name="confirm_password">
-                <p class="text-red-500 text-xs italic"><?php echo $confirmPasswordErr; ?></p>
-            </div>
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="role">
-                    Role
-                </label>
-                <select name="role" id="role" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline <?php echo (!empty($roleErr)) ? 'border-red-500' : ''; ?>">
-                    <option value="user" <?php echo ($role === 'user') ? 'selected' : ''; ?>>User</option>
-                    <option value="admin" <?php echo ($role === 'admin') ? 'selected' : ''; ?>>Admin</option>
-                </select>
-                <p class="text-red-500 text-xs italic"><?php echo $roleErr; ?></p>
-            </div>
+            <div class="mb-6 relative">
+    <label class="block text-gray-700 text-sm font-bold mb-2" for="confirm_password">Confirm Password</label>
+    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline <?php echo (!empty($confirmPasswordErr)) ? 'border-red-500' : ''; ?>" id="confirm_password" type="password" name="confirm_password" required>
+    <span class="absolute inset-y-0 right-0 top-4 pr-3 flex items-center text-gray-700">
+        <button type="button" onmousedown="showConfirmPassword()" onmouseup="hideConfirmPassword()" onmouseleave="hideConfirmPassword()" class="focus:outline-none">
+            <img src="https://img.icons8.com/ios-filled/16/000000/visible.png" id="confirmPasswordIcon" alt="Show Confirm Password" class="w-5 h-5"/>
+        </button>
+    </span>
+    <p class="text-red-500 text-xs italic"><?php echo $confirmPasswordErr; ?></p>
+</div>
+<div class="mb-4">
+    <label class="block text-gray-700 text-sm font-bold mb-2" for="role">
+        Role
+    </label>
+    <select name="role" id="role" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline <?php echo (!empty($roleErr)) ? 'border-red-500' : ''; ?>">
+        <option value="" disabled selected>Pilih</option>
+        <option value="user" <?php echo ($role === 'user') ? 'selected' : ''; ?>>User</option>
+        <option value="admin" <?php echo ($role === 'admin') ? 'selected' : ''; ?>>Admin</option>
+    </select>
+    <p class="text-red-500 text-xs italic"><?php echo $roleErr; ?></p>
+</div>
+
+
             <div class="flex items-center justify-between">
                 <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
                     Register
                 </button>
-                <a class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800" href="login.php">
-                    Already have an account? Login
-                </a>
-            </div>
         </form>
+        </div>
+        <div class="text-center mt-4">
+            <p class="text-gray-600">Sudah punya akun? <a href="../user/Login.php" class="text-blue-500 hover:underline">Login</a></p>
+        </div>
     </div>
+    <script>
+    function showPassword() {
+        const passwordField = document.getElementById('password');
+        const passwordIcon = document.getElementById('passwordIcon');
+
+        passwordField.type = 'text'; // Show password
+        passwordIcon.src = 'https://img.icons8.com/ios-filled/16/000000/invisible.png'; // Change icon to "invisible"
+    }
+
+    function hidePassword() {
+        const passwordField = document.getElementById('password');
+        const passwordIcon = document.getElementById('passwordIcon');
+
+        passwordField.type = 'password'; // Hide password
+        passwordIcon.src = 'https://img.icons8.com/ios-filled/16/000000/visible.png'; // Change icon back to "visible"
+    }
+
+        function showConfirmPassword() {
+        const confirmPasswordField = document.getElementById('confirm_password');
+        const confirmPasswordIcon = document.getElementById('confirmPasswordIcon');
+
+        confirmPasswordField.type = 'text'; // Show confirm password
+        confirmPasswordIcon.src = 'https://img.icons8.com/ios-filled/16/000000/invisible.png'; // Change icon to "invisible"
+    }
+
+    function hideConfirmPassword() {
+        const confirmPasswordField = document.getElementById('confirm_password');
+        const confirmPasswordIcon = document.getElementById('confirmPasswordIcon');
+
+        confirmPasswordField.type = 'password'; // Hide confirm password
+        confirmPasswordIcon.src = 'https://img.icons8.com/ios-filled/16/000000/visible.png'; // Change icon back to "visible"
+    }
+</script>
+
 </body>
 </html>
