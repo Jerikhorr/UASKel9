@@ -1,79 +1,19 @@
 <?php
-require_once '../includes/db_connect.php';
-
 class User {
     private $conn;
-    private $table = 'users';
-
+    private $table = 'users'; // Default table for user
     public $id;
     public $name;
     public $email;
     public $password;
-    public $is_admin;
+    public $is_admin = 0; // Default to user role
 
     public function __construct($db) {
         $this->conn = $db;
     }
 
-    public function create() {
-        $query = "INSERT INTO " . $this->table . " SET name=?, email=?, password=?, is_admin=?";
-        $stmt = $this->conn->prepare($query);
-
-        $this->name = sanitizeInput($this->name);
-        $this->email = sanitizeInput($this->email);
-        $this->password = password_hash($this->password, PASSWORD_BCRYPT, ['cost' => HASH_COST]);
-        $this->is_admin = $this->is_admin ? 1 : 0;
-
-        $stmt->bind_param("sssi", $this->name, $this->email, $this->password, $this->is_admin);
-
-        if($stmt->execute()) {
-            return true;
-        }
-        return false;
-    }
-
-    public function read($id) {
-        $query = "SELECT * FROM " . $this->table . " WHERE id = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if($result->num_rows == 1) {
-            $row = $result->fetch_assoc();
-            $this->id = $row['id'];
-            $this->name = $row['name'];
-            $this->email = $row['email'];
-            $this->is_admin = $row['is_admin'];
-            return true;
-        }
-        return false;
-    }
-
-    public function update() {
-        $query = "UPDATE " . $this->table . " SET name=?, email=? WHERE id=?";
-        $stmt = $this->conn->prepare($query);
-
-        $this->name = sanitizeInput($this->name);
-        $this->email = sanitizeInput($this->email);
-
-        $stmt->bind_param("ssi", $this->name, $this->email, $this->id);
-
-        if($stmt->execute()) {
-            return true;
-        }
-        return false;
-    }
-
-    public function delete($id) {
-        $query = "DELETE FROM " . $this->table . " WHERE id = ?";
-        $stmt = $this->conn->prepare($query);
-        $stmt->bind_param("i", $id);
-
-        if($stmt->execute()) {
-            return true;
-        }
-        return false;
+    public function setTable($table) {
+        $this->table = $table; // Method to set the table name
     }
 
     public function authenticate($email, $password) {
@@ -81,17 +21,28 @@ class User {
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("s", $email);
         $stmt->execute();
-        $result = $stmt->get_result();
+        $stmt->store_result();
 
-        if($result->num_rows == 1) {
-            $row = $result->fetch_assoc();
-            if(password_verify($password, $row['password'])) {
-                $this->id = $row['id'];
-                $this->is_admin = $row['is_admin'];
-                return true;
+        if ($stmt->num_rows == 1) {
+            $stmt->bind_result($this->id, $hashedPassword, $this->is_admin);
+            $stmt->fetch();
+
+            // Verify the password
+            if (password_verify($password, $hashedPassword)) {
+                return true; // Authentication successful
             }
         }
-        return false;
+        return false; // Authentication failed
     }
+
+    public function create() {
+        $query = "INSERT INTO " . $this->table . " (name, email, password, is_admin) VALUES (?, ?, ?, ?)";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bind_param("sssi", $this->name, $this->email, $this->password, $this->is_admin);
+
+        return $stmt->execute();
+    }
+
+    // Other methods (e.g., update, delete) can be added here
 }
 ?>
