@@ -63,9 +63,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $user->name = $name;
         $user->email = $email;
         $user->password = password_hash($password, PASSWORD_DEFAULT); // Hash the password
-        $user->is_admin = ($role == 'admin') ? 1 : 0; // Set role based on selection
 
-        if ($user->create()) {
+        // Memanggil create dengan role
+        if ($user->create($role)) { // Ubah di sini
             $_SESSION['success_message'] = "Registration successful! You can now log in.";
             header("Location: login.php");
             exit();
@@ -158,14 +158,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     </div>
 
     <script>
-        function showPassword(id) {
-            const passwordField = document.getElementById(id);
-            passwordField.setAttribute('type', 'text');
+        function showPassword(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = 'text';
         }
 
-        function hidePassword(id) {
-            const passwordField = document.getElementById(id);
-            passwordField.setAttribute('type', 'password');
+        function hidePassword(inputId) {
+            const input = document.getElementById(inputId);
+            input.type = 'password';
         }
     </script>
 </body>
