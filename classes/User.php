@@ -17,15 +17,13 @@ class User {
     }
 
     public function create() {
-        // Decide which table to insert into based on is_admin
         $table = $this->is_admin ? $this->adminTable : $this->userTable;
-        $query = "INSERT INTO " . $table . " SET name=?, email=?, password=?";
+        $query = "INSERT INTO " . $table . " (name, email, password) VALUES (?, ?, ?)";
         $stmt = $this->conn->prepare($query);
 
-        // Sanitize and hash the password
         $this->name = sanitizeInput($this->name);
         $this->email = sanitizeInput($this->email);
-        $this->password = password_hash($this->password, PASSWORD_BCRYPT, ['cost' => HASH_COST]);
+        $this->password = password_hash($this->password, PASSWORD_BCRYPT);
 
         $stmt->bind_param("sss", $this->name, $this->email, $this->password);
 
