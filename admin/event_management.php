@@ -50,23 +50,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error_message = "Error uploading banner.";
         }
     }
-    $upload_dir = '../uploads/';
-if (!is_dir($upload_dir)) {
-    mkdir($upload_dir, 0777, true); // Buat folder uploads jika belum ada
-}
-
 
     if ($event_id) {
         // Update existing event
-        $query = "UPDATE events SET name = ?, date = ?, time = ?, location = ?, description = ?, max_participants = ?, status = ?, image = ?, banner = ? WHERE id = ?";
+        $query = "UPDATE events SET name = ?, date = ?, time = ?, location = ?, description = ?, max_participants = ?, status = ?, image = ? WHERE id = ?";
         $stmt = mysqli_prepare($conn, $query);
-        mysqli_stmt_bind_param($stmt, "sssssiissi", $name, $date, $time, $location, $description, $max_participants, $status, $event_image, $event_banner, $event_id);
+        mysqli_stmt_bind_param($stmt, "sssssiisi", $name, $date, $time, $location, $description, $max_participants, $status, $event_image, $event_id);
     } else {
         // Create new event
-        $query = "INSERT INTO events (name, date, time, location, description, max_participants, status, image, banner) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $query = "INSERT INTO events (name, date, time, location, description, max_participants, status, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         $stmt = mysqli_prepare($conn, $query);
-        mysqli_stmt_bind_param($stmt, "sssssiiss", $name, $date, $time, $location, $description, $max_participants, $status, $event_image, $event_banner);
+        mysqli_stmt_bind_param($stmt, "sssssiis", $name, $date, $time, $location, $description, $max_participants, $status, $event_image);
     }
+    
 
     if (mysqli_stmt_execute($stmt)) {
         $success_message = $event_id ? "Event updated successfully." : "Event created successfully.";
@@ -206,29 +202,20 @@ include('../includes/header.php');
                 </tr>
             </thead>
             <tbody>
-                <!-- Example of dynamic rows -->
-                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-200">
-                    <td class="py-3 px-4">Tech Conference</td>
-                    <td class="py-3 px-4">2024-10-21</td>
-                    <td class="py-3 px-4">New York</td>
-                    <td class="py-3 px-4">Active</td>
-                    <td class="py-3 px-4 flex space-x-2">
-                        <a href="#" class="text-blue-500 hover:text-blue-700 transition duration-200">Edit</a>
-                        <a href="#" class="text-red-500 hover:text-red-700 transition duration-200" onclick="return confirm('Are you sure?')">Delete</a>
-                    </td>
-                </tr>
-                <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-200">
-                    <td class="py-3 px-4">Art Exhibition</td>
-                    <td class="py-3 px-4">2024-11-10</td>
-                    <td class="py-3 px-4">Paris</td>
-                    <td class="py-3 px-4">Upcoming</td>
-                    <td class="py-3 px-4 flex space-x-2">
-                        <a href="#" class="text-blue-500 hover:text-blue-700 transition duration-200">Edit</a>
-                        <a href="#" class="text-red-500 hover:text-red-700 transition duration-200" onclick="return confirm('Are you sure?')">Delete</a>
-                    </td>
-                </tr>
-                <!-- End of dynamic rows -->
-            </tbody>
+    <?php while ($event = mysqli_fetch_assoc($result)) : ?>
+        <tr class="hover:bg-gray-100 dark:hover:bg-gray-700 transition duration-200">
+            <td class="py-3 px-4"><?php echo htmlspecialchars($event['name']); ?></td>
+            <td class="py-3 px-4"><?php echo htmlspecialchars($event['date']); ?></td>
+            <td class="py-3 px-4"><?php echo htmlspecialchars($event['location']); ?></td>
+            <td class="py-3 px-4"><?php echo htmlspecialchars($event['status']); ?></td>
+            <td class="py-3 px-4 flex space-x-2">
+                <a href="edit_event.php?id=<?php echo $event['id']; ?>" class="text-blue-500 hover:text-blue-700 transition duration-200">Edit</a>
+                <a href="event_management.php?delete=<?php echo $event['id']; ?>" class="text-red-500 hover:text-red-700 transition duration-200" onclick="return confirm('Are you sure?')">Delete</a>
+            </td>
+        </tr>
+    <?php endwhile; ?>
+</tbody>
+
         </table>
     </div>
 </body>
