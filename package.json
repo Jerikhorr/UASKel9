@@ -1,0 +1,24 @@
+{
+  "name": "event_registration_system",
+  "version": "1.0.0",
+  "description": "Event Registration System using PHP and Tailwind CSS",
+  "main": "index.php",
+  "scripts": {
+    "build:css": "tailwindcss build assets/css/tailwind.css -o assets/css/style.css",
+    "watch:css": "tailwindcss build assets/css/tailwind.css -o assets/css/style.css --watch",
+    "prod:css": "NODE_ENV=production tailwindcss build assets/css/tailwind.css -o assets/css/style.css --minify"
+  },
+  "keywords": [
+    "event",
+    "registration",
+    "php",
+    "tailwindcss"
+  ],
+  "author": "Your Name",
+  "license": "ISC",
+  "devDependencies": {
+    "autoprefixer": "^10.4.14",
+    "postcss": "^8.4.23",
+    "tailwindcss": "^3.3.2"
+  }
+}
