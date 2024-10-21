@@ -45,7 +45,6 @@ if ($user->authenticate($email, $password)) {
 } else {
     $error = "Invalid email or password";
 }
-  <div class="uhuy"></div>
         
     }
     ?>
