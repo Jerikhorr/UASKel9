@@ -29,29 +29,24 @@
             $password = $_POST["password"];
         }
 
-        // Jika tidak ada error, coba login
-        if (empty($emailErr) && empty($passwordErr)) {
-            $user->email = $email;
-            $user->password = $password;
+// After successful authentication
+if ($user->authenticate($email, $password)) {
+    // Set session for user
+    $_SESSION['user'] = $user->email;
+    $_SESSION['role'] = $user->is_admin ? 'admin' : 'user'; // Store role in session
 
-            // Authenticate user
-            $role = $user->authenticate($email, $password);
-            if ($role) {
-                // Set session untuk pengguna
-                $_SESSION['user'] = $user->email;
-                $_SESSION['role'] = $role; // Simpan role di session
+    // Redirect based on role
+    if ($user->is_admin) {
+        header("Location: ../admin/dashboard_admin.php");
+    } else {
+        header("Location: dashboard_user.php");
+    }
+    exit();
+} else {
+    $error = "Invalid email or password";
+}
 
-                // Redirect berdasarkan role
-                if ($role === 'admin') {
-                    header("Location: dashboard_admin.php");
-                } else {
-                    header("Location: dashboard_user.php");
-                }
-                exit();
-            } else {
-                $error = "Invalid email or password";
-            }
-        }
+        
     }
     ?>
 

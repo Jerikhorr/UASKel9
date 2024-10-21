@@ -3,55 +3,41 @@ require_once '../includes/db_connect.php';
 
 class User {
     private $conn;
-    private $table;
+    private $userTable = 'users';
+    private $adminTable = 'admin';
 
     public $id;
     public $name;
     public $email;
     public $password;
     public $is_admin;
-    public $role; // Untuk menyimpan role
 
     public function __construct($db) {
         $this->conn = $db;
     }
 
-    public function setTable($role) {
-        // Tentukan tabel berdasarkan role
-        if ($role === 'admin') {
-            $this->table = 'admin'; // Ganti tabel menjadi admin jika peran adalah admin
-        } else {
-            $this->table = 'users'; // Default ke users
-        }
-    }
-
-    public function create($role) {
-        $this->setTable($role); // Set table berdasarkan role
-
-        // Query untuk menyimpan data pengguna
-        $query = "INSERT INTO " . $this->table . " (name, email, password, is_admin) VALUES (?, ?, ?, ?)";
+    public function create() {
+        // Decide which table to insert into based on is_admin
+        $table = $this->is_admin ? $this->adminTable : $this->userTable;
+        $query = "INSERT INTO " . $table . " SET name=?, email=?, password=?";
         $stmt = $this->conn->prepare($query);
 
-        // Sanitasi input
+        // Sanitize and hash the password
         $this->name = sanitizeInput($this->name);
         $this->email = sanitizeInput($this->email);
-        $this->password = password_hash($this->password, PASSWORD_BCRYPT);
-        $this->is_admin = $role === 'admin' ? 1 : 0; // 1 untuk admin, 0 untuk user
+        $this->password = password_hash($this->password, PASSWORD_BCRYPT, ['cost' => HASH_COST]);
 
-        // Debugging: Lihat nilai yang akan dimasukkan
-        var_dump($this->name, $this->email, $this->password, $this->is_admin);
-
-        // Bind parameter dan eksekusi
-        $stmt->bind_param("ssii", $this->name, $this->email, $this->password, $this->is_admin);
+        $stmt->bind_param("sss", $this->name, $this->email, $this->password);
 
         if ($stmt->execute()) {
             return true;
         }
+        error_log("SQL Error: " . $stmt->error); // Log error if execution fails
         return false;
     }
 
     public function read($id) {
-        $query = "SELECT * FROM " . $this->table . " WHERE id = ?";
+        $query = "SELECT * FROM " . $this->userTable . " WHERE id = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("i", $id);
         $stmt->execute();
@@ -69,10 +55,9 @@ class User {
     }
 
     public function update() {
-        $query = "UPDATE " . $this->table . " SET name=?, email=? WHERE id=?";
+        $query = "UPDATE " . $this->userTable . " SET name=?, email=? WHERE id=?";
         $stmt = $this->conn->prepare($query);
 
-        // Sanitasi input
         $this->name = sanitizeInput($this->name);
         $this->email = sanitizeInput($this->email);
 
@@ -81,66 +66,55 @@ class User {
         if ($stmt->execute()) {
             return true;
         }
+        error_log("SQL Error: " . $stmt->error);
         return false;
     }
 
     public function delete($id) {
-        $query = "DELETE FROM " . $this->table . " WHERE id = ?";
+        $query = "DELETE FROM " . $this->userTable . " WHERE id = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("i", $id);
 
         if ($stmt->execute()) {
             return true;
         }
+        error_log("SQL Error: " . $stmt->error);
         return false;
     }
 
     public function authenticate($email, $password) {
-        // Check in the admin table
-        $query = "SELECT id, password, is_admin FROM admin WHERE email = ?";
+        // Check in user table
+        $query = "SELECT id, password, is_admin FROM " . $this->userTable . " WHERE email = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
 
-        // Debugging: Check if the admin query was successful
-        if ($result) {
-            var_dump($result->num_rows); // Show number of rows returned
-        }
-
-        // If found in admin table
         if ($result->num_rows == 1) {
             $row = $result->fetch_assoc();
             if (password_verify($password, $row['password'])) {
                 $this->id = $row['id'];
                 $this->is_admin = $row['is_admin'];
-                return 'admin'; // Return a string indicating admin role
+                return true;
             }
         }
 
-        // Now check in the users table
-        $query = "SELECT id, password, is_admin FROM users WHERE email = ?";
+        // Check in admin table if not found in user table
+        $query = "SELECT id, password, 1 as is_admin FROM " . $this->adminTable . " WHERE email = ?";
         $stmt = $this->conn->prepare($query);
         $stmt->bind_param("s", $email);
         $stmt->execute();
         $result = $stmt->get_result();
 
-        // Debugging: Check if the user query was successful
-        if ($result) {
-            var_dump($result->num_rows); // Show number of rows returned
-        }
-
-        // If found in users table
         if ($result->num_rows == 1) {
             $row = $result->fetch_assoc();
             if (password_verify($password, $row['password'])) {
                 $this->id = $row['id'];
-                $this->is_admin = $row['is_admin'];
-                return 'user'; // Return a string indicating user role
+                $this->is_admin = true;
+                return true;
             }
         }
-
-        return false; // Login failed
+        return false;
     }
 }
 ?>
