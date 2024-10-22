@@ -62,41 +62,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Update existing event
             $query = "UPDATE events SET 
                       name = ?, date = ?, time = ?, location = ?, 
-                      description = ?, max_participants = ?, status = ? 
-                      WHERE id = ?";
+                      description = ?, max_participants = ?, status = ?";
+            $params = [$name, $date, $time, $location, 
+                       $description, $max_participants, $status];
+            $types = "sssssss";
+    
+            // Add image and banner to update if they exist
+            if ($image_path) {
+                $query .= ", image = ?";
+                $params[] = $image_path;
+                $types .= "s";
+            }
+            if ($banner_path) {
+                $query .= ", banner = ?";
+                $params[] = $banner_path;
+                $types .= "s";
+            }
+    
+            $query .= " WHERE id = ?";
+            $params[] = $event_id;
+            $types .= "i";
+    
             $stmt = mysqli_prepare($conn, $query);
-            mysqli_stmt_bind_param($stmt, "sssssiis", 
-                $name, $date, $time, $location, 
-                $description, $max_participants, $status, $event_id);
-
-            // Log status before execution
-            error_log("Status before update: '" . $status . "'");
-
-            // Execute statement
+            mysqli_stmt_bind_param($stmt, $types, ...$params);
+    
             if (!mysqli_stmt_execute($stmt)) {
                 $error_message = "Error updating event: " . mysqli_error($conn);
-                error_log($error_message); // Log error
-            }
-
-            // Update images only if new ones were uploaded
-            if ($image_path) {
-                $query_image = "UPDATE events SET image = ? WHERE id = ?";
-                $stmt_image = mysqli_prepare($conn, $query_image);
-                mysqli_stmt_bind_param($stmt_image, "si", $image_path, $event_id);
-                if (!mysqli_stmt_execute($stmt_image)) {
-                    $error_message = "Error updating image: " . mysqli_error($conn);
-                    error_log($error_message); // Log error
-                }
-            }
-
-            if ($banner_path) {
-                $query_banner = "UPDATE events SET banner = ? WHERE id = ?";
-                $stmt_banner = mysqli_prepare($conn, $query_banner);
-                mysqli_stmt_bind_param($stmt_banner, "si", $banner_path, $event_id);
-                if (!mysqli_stmt_execute($stmt_banner)) {
-                    $error_message = "Error updating banner: " . mysqli_error($conn);
-                    error_log($error_message); // Log error
-                }
+                error_log($error_message);
             }
         } else {
             // Create new event
@@ -104,22 +96,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                       max_participants, status, image, banner) 
                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt = mysqli_prepare($conn, $query);
+            
+            // If no image/banner uploaded, use null
+            $image_path = $image_path ?? null;
+            $banner_path = $banner_path ?? null;
+            
             mysqli_stmt_bind_param($stmt, "sssssisss", 
                 $name, $date, $time, $location, 
                 $description, $max_participants, $status, $image_path, $banner_path);
-
-            // Log status before execution
-            error_log("Status before insert: '" . $status . "'");
-
-            // Execute statement for creating new event
+    
             if (!mysqli_stmt_execute($stmt)) {
                 $error_message = "Error creating event: " . mysqli_error($conn);
-                error_log($error_message); // Log error
+                error_log($error_message);
             }
         }
     }
-    
-    // After executing the queries, you can check for errors
+
     if (!empty($error_message)) {
         echo "An error occurred: " . $error_message;
     } else {
@@ -152,7 +144,16 @@ if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
 }
 
 // Fetch all events
-$query = "SELECT * FROM events ORDER BY date DESC";
+$query = "SELECT e.*, 
+    COALESCE(r.registrant_count, 0) as registrant_count,
+    (e.max_participants - COALESCE(r.registrant_count, 0)) as available_slots 
+    FROM events e 
+    LEFT JOIN (
+        SELECT event_id, COUNT(*) as registrant_count
+        FROM registrations 
+        GROUP BY event_id
+    ) r ON e.id = r.event_id 
+    ORDER BY e.date DESC";
 $result = mysqli_query($conn, $query);
 ?>
 
@@ -274,21 +275,26 @@ $result = mysqli_query($conn, $query);
 
             <!-- Image Upload -->
             <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2" for="event_image">
-                    Event Image
-                </label>
-                <input type="file" id="event_image" name="event_image"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
+    <label class="block text-sm font-medium text-gray-700 mb-2" for="event_image">
+        Event Image
+    </label>
+    <input type="file" id="event_image" name="event_image" accept="image/*"
+           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <?php if ($edit_event && !empty($edit_event['image'])): ?>
+        <img src="<?php echo htmlspecialchars($edit_event['image']); ?>" alt="Current Image" class="mt-2 h-20">
+    <?php endif; ?>
+</div>
 
-            <!-- Banner Upload -->
-            <div class="mt-4">
-                <label class="block text-sm font-medium text-gray-700 mb-2" for="event_banner">
-                    Event Banner
-                </label>
-                <input type="file" id="event_banner" name="event_banner"
-                       class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-            </div>
+<div class="mt-4">
+    <label class="block text-sm font-medium text-gray-700 mb-2" for="event_banner">
+        Event Banner
+    </label>
+    <input type="file" id="event_banner" name="event_banner" accept="image/*"
+           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <?php if ($edit_event && !empty($edit_event['banner'])): ?>
+        <img src="<?php echo htmlspecialchars($edit_event['banner']); ?>" alt="Current Banner" class="mt-2 h-20">
+    <?php endif; ?>
+</div>
 
             <div class="mt-6">
                 <button type="submit"
@@ -300,42 +306,52 @@ $result = mysqli_query($conn, $query);
 
         <!-- Event List -->
         <h2 class="text-2xl font-semibold mb-6">Event List</h2>
-        <table class="min-w-full bg-white border border-gray-300">
-            <thead>
+<div class="overflow-x-auto">
+    <table class="min-w-full bg-white border border-gray-300">
+        <thead>
+            <tr>
+                <th class="py-2 px-4 border-b text-left">Banner</th>
+                <th class="py-2 px-4 border-b text-left">Name</th>
+                <th class="py-2 px-4 border-b text-left">Date</th>
+                <th class="py-2 px-4 border-b text-left">Time</th>
+                <th class="py-2 px-4 border-b text-left">Location</th>
+                <th class="py-2 px-4 border-b text-left">Status</th>
+                <th class="py-2 px-4 border-b text-left">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php while ($event = mysqli_fetch_assoc($result)): ?>
                 <tr>
-                    <th class="py-2 px-4 border-b text-left">Banner</th> 
-                    <th class="py-2 px-4 border-b text-left">Name</th>
-                    <th class="py-2 px-4 border-b text-left">Date</th>
-                    <th class="py-2 px-4 border-b text-left">Time</th>
-                    <th class="py-2 px-4 border-b text-left">Location</th>
-                    <th class="py-2 px-4 border-b text-left">Status</th>
-                    <th class="py-2 px-4 border-b text-left">Actions</th>
+                    <td class="py-2 px-4 border-b">
+                        <?php if (!empty($event['banner'])): ?>
+                            <img src="<?php echo htmlspecialchars($event['banner']); ?>" 
+                                 alt="Event Banner" 
+                                 class="h-20 w-32 object-cover">
+                        <?php else: ?>
+                            <span class="text-gray-400">No Banner</span>
+                        <?php endif; ?>
+                    </td>
+                    <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($event['name']); ?></td>
+                    <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($event['date']); ?></td>
+                    <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($event['time']); ?></td>
+                    <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($event['location']); ?></td>
+                    <td class="py-2 px-4 border-b">
+                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                            <?php echo getStatusBadgeClass($event['status']); ?>">
+                            <?php echo htmlspecialchars($event['status']); ?>
+                        </span>
+                    </td>
+                    <td class="py-2 px-4 border-b">
+                        <a href="event_management.php?edit=<?php echo $event['id']; ?>" 
+                           class="text-blue-500 hover:underline">Edit</a>
+                        <a href="event_management.php?delete=<?php echo $event['id']; ?>" 
+                           class="text-red-500 hover:underline ml-4"
+                           onclick="return confirm('Are you sure you want to delete this event?');">Delete</a>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                <?php while ($event = mysqli_fetch_assoc($result)): ?>
-                    <tr>
-                         <td class="py-2 px-4 border-b">
-                         <?php if (!empty($event['event_banner'])): ?>
-                        <img src="../uploads/banners/<?php echo htmlspecialchars($event['event_banner']); ?>" alt="Banner" class="h-20 w-32 object-cover"> <!-- Tampilkan Banner -->
-                            <?php else: ?>
-                                 No Banner
-                            <?php endif; ?>
-                         </td>
-                        <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($event['name']); ?></td>
-                        <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($event['date']); ?></td>
-                        <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($event['time']); ?></td>
-                        <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($event['location']); ?></td>
-                        <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($event['status']); ?></td>
-                        <td class="py-2 px-4 border-b">
-                            <a href="event_management.php?edit=<?php echo $event['id']; ?>" class="text-blue-500 hover:underline">Edit</a>
-                            <a href="event_management.php?delete=<?php echo $event['id']; ?>" class="text-red-500 hover:underline ml-4" 
-                               onclick="return confirm('Are you sure you want to delete this event?');">Delete</a>
-                        </td>
-                    </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
-    </div>
+            <?php endwhile; ?>
+        </tbody>
+    </table>
+</div>
 </body>
 </html>

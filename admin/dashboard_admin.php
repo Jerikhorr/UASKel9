@@ -124,16 +124,12 @@ mysqli_close($conn);
                                 <?php echo htmlspecialchars($event['location']); ?>
                             </td>
                             <td class="px-6 py-4">
-    <?php if (!empty($event['status'])): ?>
-        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo getStatusBadgeClass($event['status']); ?>">
-            <?php echo ucfirst(htmlspecialchars($event['status'])); ?>
-        </span>
-    <?php else: ?>
-        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-            Unknown
-        </span>
-    <?php endif; ?>
-</td>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                <?php echo !empty($event['status']) ? getStatusBadgeClass($event['status']) : 'bg-gray-100 text-gray-800'; 
+                            ?>">
+                            <?php echo !empty($event['status']) ? ucfirst(htmlspecialchars($event['status'])) : 'Unknown'; ?>
+                                </span>
+                            </td>
 
                             <td class="px-6 py-4 text-sm text-gray-700">
                                 <?php echo $event['registrant_count']; ?> / <?php echo $event['max_participants']; ?>
