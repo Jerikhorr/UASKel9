@@ -58,13 +58,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 ?>
 
-<!-- HTML Form -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Reset Password</title>
+    <link rel="icon" href="../logo/logoUAS.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         function showPassword(inputId, iconId) {
