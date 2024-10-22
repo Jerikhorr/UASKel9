@@ -51,8 +51,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $password = $_POST["password"];
         if (strlen($password) < 8) {
             $passwordErr = "Password must be at least 8 characters long";
+        } elseif (!preg_match('/[A-Z]/', $password)) {
+            $passwordErr = "Password must contain at least one uppercase letter";
+        } elseif (!preg_match('/[a-z]/', $password)) {
+            $passwordErr = "Password must contain at least one lowercase letter";
+        } elseif (!preg_match('/[0-9]/', $password)) {
+            $passwordErr = "Password must contain at least one number";
         }
     }
+
 
     // Validate confirm password
     if (empty($_POST["confirm_password"])) {

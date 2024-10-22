@@ -90,13 +90,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="flex items-center justify-between">
                 <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">Login</button>
             </div>
-        </form>
-        
+        </form> 
         <div class="text-center mt-4">
          <p class="text-gray-600">Belum punya akun? <a href="../user/Register.php" class="text-blue-500 hover:underline">Register</a>
         <br><a href="../includes/lupa_pass.php" class="text-blue-500 hover:underline">Lupa Password?</a>
-    </p>
-</div>
+         </p>
+    </div>
 
     </div>
 

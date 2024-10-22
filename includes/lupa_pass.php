@@ -2,6 +2,7 @@
 require_once '../includes/db_connect.php'; // Ensure this path is correct
 
 $errors = [];
+$success = false;
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Sanitize input from form
@@ -48,9 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $update_stmt_admin->execute();
             }
 
-            // Password reset successful, redirect to login
-            header('Location: ../user/login.php'); // Change this to the desired login URL
-            exit();
+            // Password reset successful
+            $success = true;
         } else {
             $errors[] = "No user found with that email address.";
         }
@@ -71,18 +71,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             const passwordInput = document.getElementById(inputId);
             const passwordIcon = document.getElementById(iconId);
             passwordInput.type = 'text';
-            passwordIcon.src = 'https://img.icons8.com/ios-filled/16/000000/invisible.png'; // Change icon to 'invisible'
+            passwordIcon.src = 'https://img.icons8.com/ios-filled/16/000000/invisible.png';
         }
 
         function hidePassword(inputId, iconId) {
             const passwordInput = document.getElementById(inputId);
             const passwordIcon = document.getElementById(iconId);
             passwordInput.type = 'password';
-            passwordIcon.src = 'https://img.icons8.com/ios-filled/16/000000/visible.png'; // Change icon to 'visible'
+            passwordIcon.src = 'https://img.icons8.com/ios-filled/16/000000/visible.png';
+        }
+
+        function closeModal() {
+            document.getElementById('successModal').classList.add('hidden');
+            window.location.href = '../user/login.php';
         }
     </script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen">
     <div class="bg-white p-8 rounded-lg shadow-md w-96">
         <h2 class="text-2xl font-semibold text-center mb-4">Reset Password</h2>
         <?php if (!empty($errors)): ?>
@@ -92,11 +97,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
-        <form method="POST" action="lupa_pass.php">
-            <div class="mb-4">
-                <input type="email" name="email" required placeholder="Email" class="border border-gray-300 p-2 rounded w-full">
-            </div>
-            <div class="mb-4 relative">
+        <form method="POST" action="lupa_pass.php" class="flex flex-col space-y-4">
+            <input type="email" name="email" required placeholder="Email" class="border border-gray-300 p-2 rounded w-full">
+            <div class="relative">
                 <input id="new_password" type="password" name="new_password" required placeholder="New Password" class="border border-gray-300 p-2 rounded w-full">
                 <span class="absolute inset-y-0 right-0 top-0 pr-3 flex items-center">
                     <button type="button" onmousedown="showPassword('new_password', 'newPasswordIcon')" onmouseup="hidePassword('new_password', 'newPasswordIcon')" onmouseleave="hidePassword('new_password', 'newPasswordIcon')" class="focus:outline-none">
@@ -104,7 +107,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </button>
                 </span>
             </div>
-            <div class="mb-4 relative">
+            <div class="relative">
                 <input id="confirm_password" type="password" name="confirm_password" required placeholder="Confirm Password" class="border border-gray-300 p-2 rounded w-full">
                 <span class="absolute inset-y-0 right-0 top-0 pr-3 flex items-center">
                     <button type="button" onmousedown="showPassword('confirm_password', 'confirmPasswordIcon')" onmouseup="hidePassword('confirm_password', 'confirmPasswordIcon')" onmouseleave="hidePassword('confirm_password', 'confirmPasswordIcon')" class="focus:outline-none">
@@ -114,10 +117,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <button type="submit" class="bg-blue-500 text-white py-2 rounded w-full">Reset Password</button>
         </form>
-        <div class="mt-4 text-center">
-            <a href="../user/login.php" class="text-blue-500 hover:underline">Back to Login</a>
+    </div>
+    <div class="mt-4 text-center">
+        <p class="text-gray-600">Ingat password? <a href="../user/login.php" class="text-blue-500 hover:underline">Login</a></p>
+    </div>
+
+    <!-- Success Modal -->
+    <?php if ($success): ?>
+    <div id="successModal" class="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
+        <div class="bg-white p-6 rounded-lg shadow-lg text-center">
+            <h3 class="text-lg font-semibold mb-2">Reset password berhasil!</h3>
+            <p class="mb-4">Sekarang kamu bisa login dengan password baru.</p>
+            <button onclick="closeModal()" class="bg-blue-500 text-white py-2 px-4 rounded">OK</button>
         </div>
     </div>
+    <script>
+        document.getElementById('successModal').classList.remove('hidden');
+    </script>
+    <?php endif; ?>
 </body>
 </html>
-                    
