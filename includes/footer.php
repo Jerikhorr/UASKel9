@@ -50,7 +50,7 @@
         <!-- Footer Bottom -->
         <div class="mt-8 text-center border-t border-gray-700 pt-4">
             <p class="text-gray-400 text-sm">
-                &copy; 2024 YourBrand. All rights reserved.
+                &copy; 2024 SukaEvent. All rights reserved.
             </p>
         </div>
     </div>
