@@ -90,14 +90,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <div class="flex items-center justify-between">
                 <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">Login</button>
             </div>
-<<<<<<< HEAD
-        </form>
-
-        <div class="text-center mt-4">
-            <p class="text-gray-600">Belum punya akun? <a href="../user/Register.php" class="text-blue-500 hover:underline">Register</a></p>
-        </div>
-    </div>
-=======
         </form> 
         <div class="text-center mt-4">
          <p class="text-gray-600">Belum punya akun? <a href="../user/Register.php" class="text-blue-500 hover:underline">Register</a>
@@ -116,6 +108,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             document.getElementById('password').type = 'password';
         }
     </script>
->>>>>>> main
 </body>
 </html>
