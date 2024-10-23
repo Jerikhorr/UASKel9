@@ -76,13 +76,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                 <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline <?php echo (!empty($emailErr)) ? 'border-red-500' : ''; ?>" id="email" type="email" name="email" value="<?php echo htmlspecialchars($email); ?>" required>
                 <p class="text-red-500 text-xs italic"><?php echo $emailErr; ?></p>
             </div>
-<<<<<<< HEAD
-
-            <div class="mb-4">
-                <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
-                <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline <?php echo (!empty($passwordErr)) ? 'border-red-500' : ''; ?>" id="password" type="password" name="password" required>
-                <p class="text-red-500 text-xs italic"><?php echo $passwordErr; ?></p>
-=======
             <div class="mb-4 relative">
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
                 <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline <?php echo (!empty($passwordErr)) ? 'border-red-500' : ''; ?>" id="password" type="password" name="password" required>
@@ -92,7 +85,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     </button>
                 </span>
                 <p class="text-red-500 text-xs italic"><?php echo $passwordErr; ?></p>  
->>>>>>> main
             </div>
 
             <div class="flex items-center justify-between">
