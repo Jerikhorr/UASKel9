@@ -36,7 +36,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['register_event'])) {
         $error_message = "You are already registered for this event.";
     }
 }
-
 ?>
 
 <!DOCTYPE html>
@@ -45,62 +44,54 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['register_event'])) {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Browse Events</title>
-    <link href="../assets/css/tailwind.css" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-100">
-    <div class="container mx-auto mt-10 px-4">
-        <h1 class="text-3xl font-bold mb-5">Available Events</h1>
+<body class="bg-light">
+    <div class="container mt-5">
+        <h1 class="mb-4">Available Events</h1>
         
         <?php if (isset($success_message)) : ?>
-            <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <span class="block sm:inline"><?php echo $success_message; ?></span>
+            <div class="alert alert-success" role="alert">
+                <?php echo $success_message; ?>
             </div>
         <?php endif; ?>
 
         <?php if (isset($error_message)) : ?>
-            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-                <span class="block sm:inline"><?php echo $error_message; ?></span>
+            <div class="alert alert-danger" role="alert">
+                <?php echo $error_message; ?>
             </div>
         <?php endif; ?>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="row">
             <?php while ($row = $result->fetch_assoc()) : ?>
-                <div class="bg-white shadow-md rounded-lg overflow-hidden">
-                    <?php if (!empty($row['banner_image'])) : ?>
-                        <img src="<?php echo htmlspecialchars($row['banner_image']); ?>" alt="<?php echo htmlspecialchars($row['name']); ?>" class="w-full h-48 object-cover">
-                    <?php endif; ?>
-                    <div class="p-6">
-                        <h2 class="text-xl font-semibold mb-2"><?php echo htmlspecialchars($row['name']); ?></h2>
-                        <p class="text-gray-600 mb-4"><?php echo htmlspecialchars($row['description']); ?></p>
-                        <p class="text-sm text-gray-500 mb-2">
-                            <strong>Date:</strong> <?php echo htmlspecialchars($row['date']); ?>
-                        </p>
-                        <p class="text-sm text-gray-500 mb-2">
-                            <strong>Time:</strong> <?php echo htmlspecialchars($row['time']); ?>
-                        </p>
-                        <p class="text-sm text-gray-500 mb-4">
-                            <strong>Location:</strong> <?php echo htmlspecialchars($row['location']); ?>
-                        </p>
-                        <?php
-                        $registered = $registration->isUserRegistered($_SESSION['user_id'], $row['id']);
-                        $full = $registration->getRegistrationCount($row['id']) >= $row['max_participants'];
-                        ?>
-                        <?php if ($registered) : ?>
-                            <button class="bg-green-500 text-white font-bold py-2 px-4 rounded opacity-50 cursor-not-allowed" disabled>
-                                Registered
-                            </button>
-                        <?php elseif ($full) : ?>
-                            <button class="bg-red-500 text-white font-bold py-2 px-4 rounded opacity-50 cursor-not-allowed" disabled>
-                                Event Full
-                            </button>
-                        <?php else : ?>
-                            <form method="POST">
-                                <input type="hidden" name="event_id" value="<?php echo $row['id']; ?>">
-                                <button type="submit" name="register_event" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                                    Register
-                                </button>
-                            </form>
+                <div class="col-md-4 mb-4">
+                    <div class="card h-100">
+                        <?php if (!empty($row['banner_image'])) : ?>
+                            <img src="<?php echo htmlspecialchars($row['banner_image']); ?>" alt="<?php echo htmlspecialchars($row['name']); ?>" class="card-img-top">
                         <?php endif; ?>
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo htmlspecialchars($row['name']); ?></h5>
+                            <p class="card-text"><?php echo htmlspecialchars($row['description']); ?></p>
+                            <p class="card-text"><strong>Date:</strong> <?php echo htmlspecialchars($row['date']); ?></p>
+                            <p class="card-text"><strong>Time:</strong> <?php echo htmlspecialchars($row['time']); ?></p>
+                            <p class="card-text"><strong>Location:</strong> <?php echo htmlspecialchars($row['location']); ?></p>
+                        </div>
+                        <div class="card-footer">
+                            <?php
+                            $registered = $registration->isUserRegistered($_SESSION['user_id'], $row['id']);
+                            $full = $registration->getRegistrationCount($row['id']) >= $row['max_participants'];
+                            ?>
+                            <?php if ($registered) : ?>
+                                <button class="btn btn-success btn-block" disabled>Registered</button>
+                            <?php elseif ($full) : ?>
+                                <button class="btn btn-danger btn-block" disabled>Event Full</button>
+                            <?php else : ?>
+                                <form method="POST">
+                                    <input type="hidden" name="event_id" value="<?php echo $row['id']; ?>">
+                                    <button type="submit" name="register_event" class="btn btn-primary btn-block">Register</button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             <?php endwhile; ?>
