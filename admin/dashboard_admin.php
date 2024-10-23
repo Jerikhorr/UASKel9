@@ -57,13 +57,22 @@ mysqli_close($conn);
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+            <!-- Ubah h1 menjadi tautan dengan warna hitam dan tanpa efek hover underline -->
+            <h1 class="text-3xl font-bold">
+                <a href="../user/login.php" class="text-black hover:no-underline">Admin Dashboard</a>
+            </h1>
             <div class="space-x-4">
                 <a href="event_management.php" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
                     Event Management
                 </a>
                 <a href="view_registrations.php" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
                     View Registrations
+                </a>
+                <a href="../user/profile.php" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
+                    Profile
+                </a>
+                <a href="user_management.php" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
+                    User Management
                 </a>
             </div>
         </div>

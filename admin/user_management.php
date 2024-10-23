@@ -4,157 +4,113 @@ require_once('../includes/config.php');
 require_once('../includes/db_connect.php');
 require_once('../includes/functions.php');
 
-// Periksa apakah pengguna sudah login dan memiliki role admin
+// Check if user is logged in and is an admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
     header("Location: ../user/login.php");
     exit();
 }
 
-// Proses form submission untuk membuat atau mengedit user
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $user_id = isset($_POST['user_id']) ? intval($_POST['user_id']) : null;
-    $name = mysqli_real_escape_string($conn, $_POST['name']);
-    $email = mysqli_real_escape_string($conn, $_POST['email']);
-    $role = mysqli_real_escape_string($conn, $_POST['role']);
-    $status = mysqli_real_escape_string($conn, $_POST['status']);
-    $password = !empty($_POST['password']) ? password_hash($_POST['password'], PASSWORD_BCRYPT) : null;
+$conn = getDBConnection();
 
-    if ($user_id) {
-        // Update existing user
-        if ($password) {
-            $query = "UPDATE users SET name = ?, email = ?, role = ?, status = ?, password = ? WHERE id = ?";
-            $stmt = mysqli_prepare($conn, $query);
-            mysqli_stmt_bind_param($stmt, "sssssi", $name, $email, $role, $status, $password, $user_id);
-        } else {
-            $query = "UPDATE users SET name = ?, email = ?, role = ?, status = ? WHERE id = ?";
-            $stmt = mysqli_prepare($conn, $query);
-            mysqli_stmt_bind_param($stmt, "ssssi", $name, $email, $role, $status, $user_id);
-        }
-    } else {
-        // Create new user
-        $query = "INSERT INTO users (name, email, role, status, password) VALUES (?, ?, ?, ?, ?)";
-        $stmt = mysqli_prepare($conn, $query);
-        mysqli_stmt_bind_param($stmt, "sssss", $name, $email, $role, $status, $password);
-    }
-
-    if (mysqli_stmt_execute($stmt)) {
-        $success_message = $user_id ? "User updated successfully." : "User created successfully.";
-    } else {
-        $error_message = "Error: " . mysqli_error($conn);
-    }
-
-    mysqli_stmt_close($stmt);
-}
-
-// Delete user
-if (isset($_GET['delete'])) {
-    $user_id = intval($_GET['delete']);
-    $query = "DELETE FROM users WHERE id = ?";
-    $stmt = mysqli_prepare($conn, $query);
-    mysqli_stmt_bind_param($stmt, "i", $user_id);
-
-    if (mysqli_stmt_execute($stmt)) {
-        $success_message = "User deleted successfully.";
-    } else {
-        $error_message = "Error deleting user: " . mysqli_error($conn);
-    }
-
-    mysqli_stmt_close($stmt);
-}
-
-// Fetch all users
-$query = "SELECT * FROM users ORDER BY name ASC";
+// Get users and their registered events
+$query = "SELECT u.id, u.name, u.email, GROUP_CONCAT(e.name SEPARATOR ', ') as registered_events
+          FROM users u
+          LEFT JOIN registrations r ON u.id = r.user_id
+          LEFT JOIN events e ON r.event_id = e.id
+          GROUP BY u.id, u.name, u.email
+          ORDER BY u.name ASC";
 $result = mysqli_query($conn, $query);
 
-include('../includes/header.php');
+$users = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $users[] = $row;
+}
+
+// Handle delete request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_id'])) {
+    $user_id = intval($_POST['delete_user_id']);
+    $delete_query = "DELETE FROM users WHERE id = ?";
+    $stmt = $conn->prepare($delete_query);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $stmt->close();
+    
+    // Redirect back to the same page
+    header("Location: user_management.php");
+    exit();
+}
 ?>
 
-<div class="container mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-8">User Management</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        function confirmDelete(userId) {
+            const modal = document.getElementById('confirmDeleteModal');
+            const deleteForm = document.getElementById('deleteForm');
+            deleteForm.querySelector('input[name="delete_user_id"]').value = userId;
+            modal.classList.remove('hidden');
+        }
 
-    <?php if (isset($success_message)): ?>
-        <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span class="block sm:inline"><?php echo $success_message; ?></span>
+        function closeModal() {
+            const modal = document.getElementById('confirmDeleteModal');
+            modal.classList.add('hidden');
+        }
+    </script>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-4">User Management</h1>
+        <a href="../admin/dashboard_admin.php" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4 inline-block">
+            Back to Dashboard
+        </a>
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <table class="w-full">
+                <thead>
+                    <tr class="bg-gray-50">
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Name</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Email</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Registered Events</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <?php foreach ($users as $user): ?>
+                    <tr class="hover:bg-gray-50">
+                        <td class="px-6 py-4"><?php echo $user['id']; ?></td>
+                        <td class="px-6 py-4"><?php echo htmlspecialchars($user['name']); ?></td>
+                        <td class="px-6 py-4"><?php echo htmlspecialchars($user['email']); ?></td>
+                        <td class="px-6 py-4"><?php echo htmlspecialchars($user['registered_events'] ?: 'No events'); ?></td>
+                        <td class="px-6 py-4">
+                            <button onclick="confirmDelete(<?php echo $user['id']; ?>)" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+                                Delete
+                            </button>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
         </div>
-    <?php endif; ?>
+    </div>
 
-    <?php if (isset($error_message)): ?>
-        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
-            <span class="block sm:inline"><?php echo $error_message; ?></span>
+    <!-- Modal -->
+    <div id="confirmDeleteModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-lg">
+            <h2 class="text-xl font-bold mb-4">Confirm Deletion</h2>
+            <p>Are you sure you want to delete this user?</p>
+            <div class="mt-4">
+                <button onclick="closeModal()" class="bg-gray-300 hover:bg-gray-400 px-4 py-2 rounded">Cancel</button>
+                <form id="deleteForm" method="POST" class="inline">
+                    <input type="hidden" name="delete_user_id" value="">
+                    <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded">Yes, Delete</button>
+                </form>
+            </div>
         </div>
-    <?php endif; ?>
-
-    <form action="user_management.php" method="post" class="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <input type="hidden" name="user_id" value="">
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
-                Name
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" type="text" name="name" required>
-        </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
-                Email
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" type="email" name="email" required>
-        </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="role">
-                Role
-            </label>
-            <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="role" name="role" required>
-                <option value="user">User</option>
-                <option value="admin">Admin</option>
-            </select>
-        </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
-                Status
-            </label>
-            <select class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="status" name="status" required>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-            </select>
-        </div>
-        <div class="mb-4">
-            <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
-                Password
-            </label>
-            <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" name="password" placeholder="Leave blank to keep current password">
-        </div>
-        <div class="flex items-center justify-between">
-            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
-                Create User
-            </button>
-        </div>
-    </form>
-
-    <h2 class="text-2xl font-bold mt-8 mb-4">Existing Users</h2>
-    <table class="w-full bg-white shadow-md rounded mb-4">
-        <thead>
-            <tr>
-                <th class="text-left py-2 px-4 bg-gray-100 font-semibold text-gray-600">Name</th>
-                <th class="text-left py-2 px-4 bg-gray-100 font-semibold text-gray-600">Email</th>
-                <th class="text-left py-2 px-4 bg-gray-100 font-semibold text-gray-600">Role</th>
-                <th class="text-left py-2 px-4 bg-gray-100 font-semibold text-gray-600">Status</th>
-                <th class="text-left py-2 px-4 bg-gray-100 font-semibold text-gray-600">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php while ($row = mysqli_fetch_assoc($result)): ?>
-                <tr>
-                    <td class="py-2 px-4"><?php echo htmlspecialchars($row['name']); ?></td>
-                    <td class="py-2 px-4"><?php echo htmlspecialchars($row['email']); ?></td>
-                    <td class="py-2 px-4"><?php echo htmlspecialchars($row['role']); ?></td>
-                    <td class="py-2 px-4"><?php echo htmlspecialchars($row['status']); ?></td>
-                    <td class="py-2 px-4">
-                        <a href="user_management.php?edit=<?php echo $row['id']; ?>" class="text-blue-500 hover:text-blue-700">Edit</a>
-                        <a href="user_management.php?delete=<?php echo $row['id']; ?>" class="text-red-500 hover:text-red-700 ml-2" onclick="return confirm('Are you sure you want to delete this user?')">Delete</a>
-                    </td>
-                </tr>
-            <?php endwhile; ?>
-        </tbody>
-    </table>
-</div>
-
-<?php include('../includes/footer.php'); ?>
+    </div>
+</body>
+</html>
