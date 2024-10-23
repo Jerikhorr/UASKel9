@@ -55,16 +55,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<<<<<<< HEAD
-    <title>Login</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body>
-    <div class="container mx-auto mt-10 max-w-md">
-        <h1 class="text-3xl font-bold mb-5 text-center text-gray-800">Login</h1>
-
-        <?php if (!empty($error)) : ?>
-=======
     <title>Login</title>  
     <link rel="icon" href="../logo/logoUAS.png" type="image/png">
     <script src="https://cdn.tailwindcss.com"></script>
@@ -74,7 +64,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <h1 class="text-3xl font-bold mb-5 text-center text-gray-800">Login</h1>
 
         <?php if (isset($error)) : ?>
->>>>>>> main
             <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4" role="alert">
                 <strong class="font-bold">Error!</strong>
                 <span class="block sm:inline"><?php echo $error; ?></span>
