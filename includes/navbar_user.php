@@ -37,7 +37,7 @@ function isCurrentPage($path) {
                 </a>
 
                 <!-- Logout button -->
-                <a href="../user/logout.php" 
+                <a href="../user/login.php" 
                    class="bg-red-500 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-red-600 transition duration-150 ease-in-out">
                     Logout
                 </a>
