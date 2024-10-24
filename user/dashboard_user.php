@@ -1,40 +1,37 @@
 <?php
+// dashboard_user.php
 session_start();
-require_once '../includes/config.php';
-require_once '../includes/db_connect.php';
-require_once '../classes/Event.php';
-require_once '../classes/Registration.php';
+require_once '../config/config.php';
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
-    exit();
+// Fetch all available events
+$sql_events = "SELECT e.*, 
+               (SELECT COUNT(*) FROM registrations er WHERE er.event_id = e.id) as current_participants 
+               FROM events e 
+               WHERE e.date >= CURRENT_DATE AND e.status = 'active' 
+               ORDER BY e.date ASC";
+$result_events = mysqli_query($conn, $sql_events);
+
+if (!$result_events) {
+    die("Error fetching available events: " . mysqli_error($conn));
 }
 
-$db = getDBConnection();
-$event = new Event($db);
-$registration = new Registration($db);
+// Fetch user's registered events
+$user_id = $_SESSION['user_id'];
+$sql_registered = "SELECT event_id FROM registrations WHERE user_id = ?";
+$stmt = mysqli_prepare($conn, $sql_registered);
 
-// Fetch available events
-$result = $event->getAvailableEvents();
-
-// Handle event registration
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['register_event'])) {
-    $event_id = $_POST['event_id'];
+if ($stmt) {
+    mysqli_stmt_bind_param($stmt, "i", $user_id);
+    mysqli_stmt_execute($stmt);
+    $result_registered = mysqli_stmt_get_result($stmt);
     
-    // Check if user is already registered
-    if (!$registration->isUserRegistered($_SESSION['user_id'], $event_id)) {
-        $registration->user_id = $_SESSION['user_id'];
-        $registration->event_id = $event_id;
-        
-        if ($registration->register()) {
-            $success_message = "You have successfully registered for the event!";
-        } else {
-            $error_message = "Registration failed. Please try again.";
-        }
-    } else {
-        $error_message = "You are already registered for this event.";
+    // Store registered event IDs in an array
+    $registered_events = [];
+    while ($reg_event = mysqli_fetch_assoc($result_registered)) {
+        $registered_events[] = $reg_event['event_id'];
     }
+} else {
+    die("Error preparing statement: " . mysqli_error($conn));
 }
 ?>
 
@@ -43,59 +40,91 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['register_event'])) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browse Events</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <title>User Dashboard - Events</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Your existing styles */
+    </style>
 </head>
-<body class="bg-light">
-    <div class="container mt-5">
-        <h1 class="mb-4">Available Events</h1>
-        
-        <?php if (isset($success_message)) : ?>
-            <div class="alert alert-success" role="alert">
-                <?php echo $success_message; ?>
+<body>
+    <div class="container">
+        <!-- Alert Messages -->
+        <?php if (isset($_SESSION['message'])): ?>
+            <div class="alert alert-success">
+                <?php echo $_SESSION['message']; unset($_SESSION['message']); ?>
+            </div>
+        <?php elseif (isset($_SESSION['error'])): ?>
+            <div class="alert alert-danger">
+                <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
             </div>
         <?php endif; ?>
 
-        <?php if (isset($error_message)) : ?>
-            <div class="alert alert-danger" role="alert">
-                <?php echo $error_message; ?>
-            </div>
-        <?php endif; ?>
+        <h1 class="page-title">Available Events</h1>
 
+        <!-- Button to Register for Events -->
+        <div class="mb-3">
+            <a href="registered_event.php" class="btn btn-primary">My Registered Events</a> <!-- Ubah route ke registered_event.php -->
+        </div>
+
+        <!-- Available Events Display -->
         <div class="row">
-            <?php while ($row = $result->fetch_assoc()) : ?>
-                <div class="col-md-4 mb-4">
-                    <div class="card h-100">
-                        <?php if (!empty($row['banner_image'])) : ?>
-                            <img src="<?php echo htmlspecialchars($row['banner_image']); ?>" alt="<?php echo htmlspecialchars($row['name']); ?>" class="card-img-top">
-                        <?php endif; ?>
-                        <div class="card-body">
-                            <h5 class="card-title"><?php echo htmlspecialchars($row['name']); ?></h5>
-                            <p class="card-text"><?php echo htmlspecialchars($row['description']); ?></p>
-                            <p class="card-text"><strong>Date:</strong> <?php echo htmlspecialchars($row['date']); ?></p>
-                            <p class="card-text"><strong>Time:</strong> <?php echo htmlspecialchars($row['time']); ?></p>
-                            <p class="card-text"><strong>Location:</strong> <?php echo htmlspecialchars($row['location']); ?></p>
-                        </div>
-                        <div class="card-footer">
-                            <?php
-                            $registered = $registration->isUserRegistered($_SESSION['user_id'], $row['id']);
-                            $full = $registration->getRegistrationCount($row['id']) >= $row['max_participants'];
-                            ?>
-                            <?php if ($registered) : ?>
-                                <button class="btn btn-success btn-block" disabled>Registered</button>
-                            <?php elseif ($full) : ?>
-                                <button class="btn btn-danger btn-block" disabled>Event Full</button>
-                            <?php else : ?>
-                                <form method="POST">
-                                    <input type="hidden" name="event_id" value="<?php echo $row['id']; ?>">
-                                    <button type="submit" name="register_event" class="btn btn-primary btn-block">Register</button>
-                                </form>
-                            <?php endif; ?>
-                        </div>
+            <?php if (mysqli_num_rows($result_events) > 0): ?>
+                <?php while($event = mysqli_fetch_assoc($result_events)): 
+                    // Check if user is already registered
+                    $is_registered = in_array($event['id'], $registered_events);
+                ?>
+                    <div class="col-md-4">
+                        <a href="event_details.php?id=<?php echo $event['id']; ?>" class="card-link">
+                            <div class="card event-card">
+                                <?php if($is_registered): ?>
+                                    <div class="registered-badge">
+                                        <span class="badge badge-success">Registered</span>
+                                    </div>
+                                <?php endif; ?>
+                                
+                                <?php if($event['banner']): ?>
+                                    <img src="<?php echo htmlspecialchars($event['banner']); ?>" 
+                                         class="banner-image" 
+                                         alt="Event banner">
+                                <?php endif; ?>
+                                
+                                <div class="card-body">
+                                    <h5 class="card-title"><?php echo htmlspecialchars($event['name']); ?></h5>
+                                    <p class="card-text"><?php echo htmlspecialchars(substr($event['description'], 0, 100)) . '...'; ?></p>
+                                    
+                                    <div class="event-info">
+                                        <div class="event-date">
+                                            <i class="fas fa-calendar-alt"></i>
+                                            <?php echo date('F d, Y', strtotime($event['date'])); ?>
+                                            at <?php echo date('h:i A', strtotime($event['time'])); ?>
+                                        </div>
+                                        <div class="event-location">
+                                            <i class="fas fa-map-marker-alt"></i>
+                                            <?php echo htmlspecialchars($event['location']); ?>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="participants-badge">
+                                        <span class="badge badge-info">
+                                            <?php echo $event['current_participants']; ?>/<?php echo $event['max_participants']; ?> participants
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    </div>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <div class="col-12">
+                    <div class="alert alert-warning">
+                        <strong>No events available at the moment.</strong>
                     </div>
                 </div>
-            <?php endwhile; ?>
+            <?php endif; ?>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
 </body>
 </html>
