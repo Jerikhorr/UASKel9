@@ -158,6 +158,7 @@ $result = mysqli_query($conn, $query);
 ?>
 
 
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -165,32 +166,44 @@ $result = mysqli_query($conn, $query);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Event Management</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-100">
+<body class="bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <?php include 'navbar_admin.php'; ?>
+
+    <!-- Main Content -->
     <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold">Event Management</h1>
-            <a href="dashboard_admin.php" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-                Back to Dashboard
-            </a>
+            <h1 class="text-3xl font-bold text-gray-800">
+                <i class="fas fa-calendar-alt text-blue-600 mr-2"></i>Event Management
+            </h1>
+            
         </div>
 
+        <!-- Success Message -->
         <?php if ($success_message): ?>
-        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4">
+        <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
             <?php echo $success_message; ?>
         </div>
         <?php endif; ?>
 
+        <!-- Error Message -->
         <?php if ($error_message): ?>
-        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-r flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
             <?php echo $error_message; ?>
         </div>
         <?php endif; ?>
 
         <!-- Event Form -->
         <form action="event_management.php<?php echo $edit_event ? '?edit=' . $edit_event['id'] : ''; ?>" 
-              method="POST" enctype="multipart/form-data" class="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 class="text-2xl font-semibold mb-6">
+              method="POST" enctype="multipart/form-data" 
+              class="bg-white rounded-xl shadow-lg p-6 mb-8 transition-all duration-300"
+              id="eventForm">
+            <h2 class="text-2xl font-semibold mb-6 flex items-center text-gray-800">
+                <i class="fas <?php echo $edit_event ? 'fa-edit' : 'fa-plus-circle'; ?> text-blue-600 mr-2"></i>
                 <?php echo $edit_event ? 'Edit Event' : 'Create New Event'; ?>
             </h2>
 
@@ -200,158 +213,318 @@ $result = mysqli_query($conn, $query);
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Event Name -->
-                <div>
+                <div class="relative">
                     <label class="block text-sm font-medium text-gray-700 mb-2" for="name">
                         Event Name
                     </label>
-                    <input type="text" id="name" name="name" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           value="<?php echo $edit_event ? htmlspecialchars($edit_event['name']) : ''; ?>">
+                    <div class="relative">
+                        <i class="fas fa-bookmark absolute left-3 top-3 text-gray-400"></i>
+                        <input type="text" id="name" name="name" required
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               value="<?php echo $edit_event ? htmlspecialchars($edit_event['name']) : ''; ?>"
+                               placeholder="Enter event name">
+                    </div>
                 </div>
 
                 <!-- Date -->
-                <div>
+                <div class="relative">
                     <label class="block text-sm font-medium text-gray-700 mb-2" for="date">
                         Date
                     </label>
-                    <input type="date" id="date" name="date" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           value="<?php echo $edit_event ? $edit_event['date'] : ''; ?>">
+                    <div class="relative">
+                        <i class="fas fa-calendar absolute left-3 top-3 text-gray-400"></i>
+                        <input type="date" id="date" name="date" required
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               value="<?php echo $edit_event ? $edit_event['date'] : ''; ?>">
+                    </div>
                 </div>
 
                 <!-- Time -->
-                <div>
+                <div class="relative">
                     <label class="block text-sm font-medium text-gray-700 mb-2" for="time">
                         Time
                     </label>
-                    <input type="time" id="time" name="time" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           value="<?php echo $edit_event ? $edit_event['time'] : ''; ?>">
+                    <div class="relative">
+                        <i class="fas fa-clock absolute left-3 top-3 text-gray-400"></i>
+                        <input type="time" id="time" name="time" required
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               value="<?php echo $edit_event ? $edit_event['time'] : ''; ?>">
+                    </div>
                 </div>
 
                 <!-- Location -->
-                <div>
+                <div class="relative">
                     <label class="block text-sm font-medium text-gray-700 mb-2" for="location">
                         Location
                     </label>
-                    <input type="text" id="location" name="location" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           value="<?php echo $edit_event ? htmlspecialchars($edit_event['location']) : ''; ?>">
+                    <div class="relative">
+                        <i class="fas fa-map-marker-alt absolute left-3 top-3 text-gray-400"></i>
+                        <input type="text" id="location" name="location" required
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               value="<?php echo $edit_event ? htmlspecialchars($edit_event['location']) : ''; ?>"
+                               placeholder="Enter location">
+                    </div>
                 </div>
 
                 <!-- Max Participants -->
-                <div>
+                <div class="relative">
                     <label class="block text-sm font-medium text-gray-700 mb-2" for="max_participants">
                         Max Participants
                     </label>
-                    <input type="number" id="max_participants" name="max_participants" required
-                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                           value="<?php echo $edit_event ? $edit_event['max_participants'] : ''; ?>">
+                    <div class="relative">
+                        <i class="fas fa-users absolute left-3 top-3 text-gray-400"></i>
+                        <input type="number" id="max_participants" name="max_participants" required
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                               value="<?php echo $edit_event ? $edit_event['max_participants'] : ''; ?>"
+                               placeholder="Enter maximum participants">
+                    </div>
                 </div>
 
                 <!-- Status -->
-                <div>
+                <div class="relative">
                     <label class="block text-sm font-medium text-gray-700 mb-2" for="status">
                         Status
                     </label>
-                    <select id="status" name="status" required
-                            class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="upcoming" <?php echo ($edit_event && $edit_event['status'] === 'upcoming') ? 'selected' : ''; ?>>Upcoming</option>
-                        <option value="active" <?php echo ($edit_event && $edit_event['status'] === 'active') ? 'selected' : ''; ?>>Active</option>
-                        <option value="completed" <?php echo ($edit_event && $edit_event['status'] === 'completed') ? 'selected' : ''; ?>>Completed</option>
-                        <option value="canceled" <?php echo ($edit_event && $edit_event['status'] === 'canceled') ? 'selected' : ''; ?>>Canceled</option>
-                    </select>
+                    <div class="relative">
+                        <i class="fas fa-tag absolute left-3 top-3 text-gray-400"></i>
+                        <select id="status" name="status" required
+                                class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none">
+                            <option value="upcoming" <?php echo ($edit_event && $edit_event['status'] === 'upcoming') ? 'selected' : ''; ?>>Upcoming</option>
+                            <option value="active" <?php echo ($edit_event && $edit_event['status'] === 'active') ? 'selected' : ''; ?>>Active</option>
+                            <option value="completed" <?php echo ($edit_event && $edit_event['status'] === 'completed') ? 'selected' : ''; ?>>Completed</option>
+                            <option value="canceled" <?php echo ($edit_event && $edit_event['status'] === 'canceled') ? 'selected' : ''; ?>>Canceled</option>
+                        </select>
+                        <i class="fas fa-chevron-down absolute right-3 top-3 text-gray-400 pointer-events-none"></i>
+                    </div>
                 </div>
             </div>
 
             <!-- Description -->
-            <div class="mt-4">
+            <div class="mt-6">
                 <label class="block text-sm font-medium text-gray-700 mb-2" for="description">
                     Description
                 </label>
-                <textarea id="description" name="description" rows="4" required
-                          class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"><?php echo $edit_event ? htmlspecialchars($edit_event['description']) : ''; ?></textarea>
+                <div class="relative">
+                    <i class="fas fa-align-left absolute left-3 top-3 text-gray-400"></i>
+                    <textarea id="description" name="description" rows="4" required
+                              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                              placeholder="Enter event description"><?php echo $edit_event ? htmlspecialchars($edit_event['description']) : ''; ?></textarea>
+                </div>
             </div>
 
-            <!-- Image Upload -->
-            <div class="mt-4">
-    <label class="block text-sm font-medium text-gray-700 mb-2" for="event_image">
-        Event Image
-    </label>
-    <input type="file" id="event_image" name="event_image" accept="image/*"
-           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-    <?php if ($edit_event && !empty($edit_event['image'])): ?>
-        <img src="<?php echo htmlspecialchars($edit_event['image']); ?>" alt="Current Image" class="mt-2 h-20">
-    <?php endif; ?>
-</div>
+            <!-- File Upload Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <!-- Event Image Upload -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Event Image</label>
+                    <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                        <input type="file" id="event_image" name="event_image" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <div class="text-center">
+                            <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-500 text-sm">Click or drag image here</p>
+                        </div>
+                        <?php if ($edit_event && !empty($edit_event['image'])): ?>
+                            <img src="<?php echo htmlspecialchars($edit_event['image']); ?>" alt="Current Image" class="mt-2 h-20 mx-auto">
+                        <?php endif; ?>
+                    </div>
+                </div>
 
-<div class="mt-4">
-    <label class="block text-sm font-medium text-gray-700 mb-2" for="event_banner">
-        Event Banner
-    </label>
-    <input type="file" id="event_banner" name="event_banner" accept="image/*"
-           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-    <?php if ($edit_event && !empty($edit_event['banner'])): ?>
-        <img src="<?php echo htmlspecialchars($edit_event['banner']); ?>" alt="Current Banner" class="mt-2 h-20">
-    <?php endif; ?>
-</div>
+                <!-- Event Banner Upload -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Event Banner</label>
+                    <div class="relative border-2 border-dashed border-gray-300 rounded-lg p-6 hover:border-blue-500 transition-colors">
+                        <input type="file" id="event_banner" name="event_banner" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <div class="text-center">
+                            <i class="fas fa-image text-4xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-500 text-sm">Click or drag banner here</p>
+                        </div>
+                        <?php if ($edit_event && !empty($edit_event['banner'])): ?>
+                            <img src="<?php echo htmlspecialchars($edit_event['banner']); ?>" alt="Current Banner" class="mt-2 h-20 mx-auto">
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
 
-            <div class="mt-6">
+            <!-- Submit Button -->
+            <div class="mt-6 flex justify-end space-x-4">
                 <button type="submit"
-                        class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+                        class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center">
+                    <i class="fas <?php echo $edit_event ? 'fa-save' : 'fa-plus-circle'; ?> mr-2"></i>
                     <?php echo $edit_event ? 'Update Event' : 'Create Event'; ?>
                 </button>
             </div>
         </form>
 
-        <!-- Event List -->
-        <h2 class="text-2xl font-semibold mb-6">Event List</h2>
-<div class="overflow-x-auto">
-    <table class="min-w-full bg-white border border-gray-300">
-        <thead>
-            <tr>
-                <th class="py-2 px-4 border-b text-left">Banner</th>
-                <th class="py-2 px-4 border-b text-left">Name</th>
-                <th class="py-2 px-4 border-b text-left">Date</th>
-                <th class="py-2 px-4 border-b text-left">Time</th>
-                <th class="py-2 px-4 border-b text-left">Location</th>
-                <th class="py-2 px-4 border-b text-left">Status</th>
-                <th class="py-2 px-4 border-b text-left">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php while ($event = mysqli_fetch_assoc($result)): ?>
-                <tr>
-                    <td class="py-2 px-4 border-b">
-                        <?php if (!empty($event['banner'])): ?>
-                            <img src="<?php echo htmlspecialchars($event['banner']); ?>" 
-                                 alt="Event Banner" 
-                                 class="h-20 w-32 object-cover">
-                        <?php else: ?>
-                            <span class="text-gray-400">No Banner</span>
-                        <?php endif; ?>
-                    </td>
-                    <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($event['name']); ?></td>
-                    <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($event['date']); ?></td>
-                    <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($event['time']); ?></td>
-                    <td class="py-2 px-4 border-b"><?php echo htmlspecialchars($event['location']); ?></td>
-                    <td class="py-2 px-4 border-b">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            <?php echo getStatusBadgeClass($event['status']); ?>">
-                            <?php echo htmlspecialchars($event['status']); ?>
-                        </span>
-                    </td>
-                    <td class="py-2 px-4 border-b">
-                        <a href="event_management.php?edit=<?php echo $event['id']; ?>" 
-                           class="text-blue-500 hover:underline">Edit</a>
-                        <a href="event_management.php?delete=<?php echo $event['id']; ?>" 
-                           class="text-red-500 hover:underline ml-4"
-                           onclick="return confirm('Are you sure you want to delete this event?');">Delete</a>
-                    </td>
-                </tr>
-            <?php endwhile; ?>
-        </tbody>
-    </table>
-</div>
+        <!-- Events List -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-800">Event List</h2>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Banner</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Details</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <?php while ($event = mysqli_fetch_assoc($result)): ?>
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <?php if (!empty($event['banner'])): ?>
+                                        <img src="<?php echo htmlspecialchars($event['banner']); ?>" 
+                                             alt="Event Banner" 
+                                             class="h-20 w-32 object-cover rounded-lg">
+                                    <?php else: ?>
+                                        <div class="h-20 w-32 bg-gray-100 rounded-lg flex items-center justify-center">
+                                            <i class="fas fa-image text-gray-400 text-2xl"></i>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($event['name']); ?></div>
+                                    <div class="text-sm text-gray-500">
+                                        <i class="fas fa-users mr-1"></i>
+                                        <?php echo $event['registrant_count']; ?> / <?php echo $event['max_participants']; ?> participants
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">
+                                    <i class="far fa-calendar-alt mr-1"></i>
+                                        <?php echo date('M d, Y', strtotime($event['date'])); ?>
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        <i class="far fa-clock mr-1"></i>
+                                        <?php echo date('h:i A', strtotime($event['time'])); ?>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <div class="text-sm text-gray-900">
+                                        <i class="fas fa-map-marker-alt mr-1"></i>
+                                        <?php echo htmlspecialchars($event['location']); ?>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                    <?php
+                                    $status_colors = [
+                                        'upcoming' => 'bg-yellow-100 text-yellow-800',
+                                        'active' => 'bg-green-100 text-green-800',
+                                        'completed' => 'bg-blue-100 text-blue-800',
+                                        'canceled' => 'bg-red-100 text-red-800'
+                                    ];
+                                    $status_class = $status_colors[$event['status']] ?? 'bg-gray-100 text-gray-800';
+                                    ?>
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $status_class; ?>">
+                                        <?php echo ucfirst(htmlspecialchars($event['status'])); ?>
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4 text-sm font-medium">
+                                    <div class="flex space-x-3">
+                                    <a href="event_management.php?edit=<?php echo $event['id']; ?>" 
+                                        class="text-blue-600 hover:text-blue-900 transition-colors">
+                                        <i class="fas fa-edit"></i>
+                                                </a>
+                                                    <button onclick="deleteEvent(<?php echo $event['id']; ?>)"
+                                                class="text-red-600 hover:text-red-900 transition-colors">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center">
+        <div class="bg-white rounded-lg p-8 max-w-md mx-auto">
+            <h3 class="text-xl font-bold mb-4">Confirm Delete</h3>
+            <p class="text-gray-600 mb-6">Are you sure you want to delete this event? This action cannot be undone.</p>
+            <div class="flex justify-end space-x-4">
+                <button onclick="closeDeleteModal()" 
+                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
+                    Cancel
+                </button>
+                <button onclick="confirmDelete()" 
+                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
+                    Delete
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentEventId = null;
+
+        function toggleForm() {
+            const form = document.getElementById('eventForm');
+            form.classList.toggle('hidden');
+        }
+
+        function deleteEvent(eventId) {
+            currentEventId = eventId;
+            const modal = document.getElementById('deleteModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            currentEventId = null;
+        }
+
+        function confirmDelete() {
+            if (currentEventId) {
+                window.location.href = `event_management.php?delete=${currentEventId}`;
+            }
+        }
+
+        // File upload preview
+        document.getElementById('event_image').addEventListener('change', function(e) {
+            if (e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.createElement('img');
+                    preview.src = e.target.result;
+                    preview.className = 'mt-2 h-20 mx-auto';
+                    const container = this.parentElement;
+                    const existingPreview = container.querySelector('img');
+                    if (existingPreview) {
+                        container.removeChild(existingPreview);
+                    }
+                    container.appendChild(preview);
+                }.bind(this);
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+
+        document.getElementById('event_banner').addEventListener('change', function(e) {
+            if (e.target.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.createElement('img');
+                    preview.src = e.target.result;
+                    preview.className = 'mt-2 h-20 mx-auto';
+                    const container = this.parentElement;
+                    const existingPreview = container.querySelector('img');
+                    if (existingPreview) {
+                        container.removeChild(existingPreview);
+                    }
+                    container.appendChild(preview);
+                }.bind(this);
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    </script>
 </body>
 </html>
