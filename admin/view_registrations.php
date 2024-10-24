@@ -119,21 +119,26 @@ if (isset($_GET['event_id'])) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>View Registrations</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-50">
+    <?php include 'navbar_admin.php'; ?>
+    
     <div class="container mx-auto px-4 py-8">
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold">Event Registrations</h1>
-            <a href="dashboard_admin.php" class="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600">
-                Back to Dashboard
-            </a>
+            <div>
+                <h1 class="text-3xl font-bold text-gray-800">Event Registrations</h1>
+                <p class="text-gray-600 mt-2">Manage and view all event registrations</p>
+            </div>
         </div>
 
-        <!-- Event Selection -->
-        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 class="text-xl font-semibold mb-4">Select Event</h2>
+        <!-- Event Selection Card -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-8 border border-gray-100">
+            <h2 class="text-xl font-semibold mb-4 text-gray-800 flex items-center">
+                <i class="fas fa-calendar-alt mr-2 text-blue-500"></i> Select Event
+            </h2>
             <form action="view_registrations.php" method="get" class="flex gap-4">
-                <select name="event_id" class="flex-1 border rounded-lg px-4 py-2">
+                <select name="event_id" class="flex-1 border rounded-lg px-4 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-300">
                     <option value="">Select an event...</option>
                     <?php foreach ($events as $event): ?>
                         <option value="<?php echo $event['id']; ?>" 
@@ -143,59 +148,142 @@ if (isset($_GET['event_id'])) {
                         </option>
                     <?php endforeach; ?>
                 </select>
-                <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600">
-                    View Registrants
+                <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition duration-300 flex items-center">
+                    <i class="fas fa-search mr-2"></i> View Registrants
                 </button>
             </form>
         </div>
 
-        <?php if ($selected_event && count($registrants) > 0): ?>
-        <!-- Registrants List -->
-        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
-            <div class="p-6 bg-gray-50 border-b flex justify-between items-center">
-                <h2 class="text-xl font-semibold">
-                    Registrants for <?php echo htmlspecialchars($registrants[0]['event_name']); ?>
-                </h2>
-                <a href="view_registrations.php?export=csv&event_id=<?php echo $selected_event; ?>" 
-                   class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">
-                    Export to CSV
-                </a>
+        <?php if ($selected_event && count($registrants) > 0): 
+            // Calculate statistics
+            $total_registrants = count($registrants);
+            $recent_registrations = array_filter($registrants, function($reg) {
+                return strtotime($reg['registration_date']) > strtotime('-24 hours');
+            });
+            $recent_count = count($recent_registrations);
+        ?>
+            <!-- Statistics Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-blue-100 text-blue-500">
+                            <i class="fas fa-users text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-500 uppercase">Total Registrants</p>
+                            <p class="text-2xl font-semibold text-gray-800"><?php echo $total_registrants; ?></p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-500">
+                            <i class="fas fa-clock text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-500 uppercase">Last 24 Hours</p>
+                            <p class="text-2xl font-semibold text-gray-800"><?php echo $recent_count; ?></p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-500">
+                            <i class="fas fa-calendar-check text-2xl"></i>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm text-gray-500 uppercase">Event Date</p>
+                            <p class="text-2xl font-semibold text-gray-800">
+                                <?php echo date('M d, Y', strtotime($registrants[0]['event_date'])); ?>
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead>
-                        <tr class="bg-gray-50">
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration Date</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <?php foreach ($registrants as $registrant): ?>
-                        <tr class="hover:bg-gray-50">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <?php echo $registrant['id']; ?>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <?php echo htmlspecialchars($registrant['name']); ?>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <?php echo htmlspecialchars($registrant['email']); ?>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                <?php echo date('M d, Y H:i', strtotime($registrant['registration_date'])); ?>
-                            </td>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
+
+            <!-- Registrants List -->
+            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
+                <div class="p-6 bg-white border-b flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-800">
+                            <i class="fas fa-list-alt mr-2 text-blue-500"></i>
+                            Registrants for <?php echo htmlspecialchars($registrants[0]['event_name']); ?>
+                        </h2>
+                        <p class="text-sm text-gray-500 mt-1">
+                            Showing all registered participants
+                        </p>
+                    </div>
+                    <a href="view_registrations.php?export=csv&event_id=<?php echo $selected_event; ?>" 
+                       class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition duration-300 flex items-center">
+                        <i class="fas fa-download mr-2"></i> Export to CSV
+                    </a>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="bg-gray-50">
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Registration Date</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <?php foreach ($registrants as $registrant): 
+                                $isRecent = strtotime($registrant['registration_date']) > strtotime('-24 hours');
+                            ?>
+                            <tr class="hover:bg-gray-50 transition duration-150">
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    #<?php echo $registrant['id']; ?>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-8 w-8 bg-gray-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-gray-500"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">
+                                                <?php echo htmlspecialchars($registrant['name']); ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <div class="text-sm text-gray-900">
+                                        <i class="fas fa-envelope mr-2 text-gray-400"></i>
+                                        <?php echo htmlspecialchars($registrant['email']); ?>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-clock mr-2 <?php echo $isRecent ? 'text-green-500' : 'text-gray-400'; ?>"></i>
+                                        <?php echo date('M d, Y H:i', strtotime($registrant['registration_date'])); ?>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                        <?php echo $isRecent ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'; ?>">
+                                        <?php echo $isRecent ? 'New Registration' : 'Registered'; ?>
+                                    </span>
+                                </td>
+                            </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
         <?php elseif ($selected_event): ?>
-        <div class="bg-white rounded-lg shadow-lg p-6">
-            <p class="text-gray-500">No registrants found for this event.</p>
-        </div>
+            <div class="bg-white rounded-xl shadow-md p-8 text-center border border-gray-100">
+                <div class="text-gray-400 mb-4">
+                    <i class="fas fa-users-slash text-6xl"></i>
+                </div>
+                <h3 class="text-xl font-medium text-gray-800 mb-2">No Registrants Found</h3>
+                <p class="text-gray-500">There are currently no registrants for this event.</p>
+            </div>
         <?php endif; ?>
     </div>
 </body>
