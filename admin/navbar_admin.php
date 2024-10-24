@@ -19,7 +19,7 @@ function isCurrentPage($path) {
             <div class="flex items-center">
                 <!-- Logo placeholder - replace src with your actual logo path -->
                 <a href="dashboard_admin.php" class="flex items-center">
-                    <img src="../assets/images/logo.png" alt="Logo" class="h-8 w-8 mr-3">
+                    <img src="../logo/logoUAS.png" alt="Logo" class="h-12 w-12 mr-3">
                     <span class="text-white text-xl font-bold">Admin Dashboard</span>
                 </a>
             </div>
