@@ -25,7 +25,7 @@ $result = mysqli_query($conn, $query);
 
 $users = [];
 $total_users = 0;
-$active_users = 0; // Users with at least one event
+$active_users = 0;
 $total_registrations = 0;
 
 while ($row = mysqli_fetch_assoc($result)) {
@@ -34,7 +34,6 @@ while ($row = mysqli_fetch_assoc($result)) {
         $active_users++;
     }
     $total_registrations += $row['event_count'];
-    // Convert the concatenated events string to an array
     $row['registered_events'] = $row['registered_events'] ? explode('|||', $row['registered_events']) : [];
     $users[] = $row;
 }
@@ -48,7 +47,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_id'])) {
     $stmt->execute();
     $stmt->close();
     
-    // Redirect back to the same page
     header("Location: user_management.php");
     exit();
 }
@@ -70,70 +68,103 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_id'])) {
             from { opacity: 0; }
             to { opacity: 1; }
         }
+        
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 4px;
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 2px;
+        }
+        
+        @media (max-width: 768px) {
+            .user-card {
+                border-radius: 0.5rem;
+                margin-bottom: 1rem;
+                transition: transform 0.2s;
+            }
+            .user-card:active {
+                transform: scale(0.98);
+            }
+        }
     </style>
 </head>
 <body class="bg-gray-50">
     <?php include 'navbar_admin.php'; ?>
     
-    <div class="container mx-auto px-4 py-8">
+    <div class="container mx-auto px-4 py-4 sm:py-8">
         <!-- Header Section -->
-        <div class="flex justify-between items-center mb-8">
-            <div>
-                <h1 class="text-3xl font-bold text-gray-800">User Management</h1>
-                <p class="text-gray-600 mt-2">Manage and monitor user activities</p>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+            <div class="w-full sm:w-auto mb-4 sm:mb-0">
+                <h1 class="text-2xl sm:text-3xl font-bold text-gray-800">User Management</h1>
+                <p class="text-gray-600 mt-1">Manage and monitor user activities</p>
+            </div>
+            
+            <!-- Search Box -->
+            <div class="w-full sm:w-auto">
+                <div class="relative">
+                    <input type="text" id="searchInput" 
+                           placeholder="Search users..." 
+                           class="w-full sm:w-64 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
+                </div>
             </div>
         </div>
 
         <!-- Statistics Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <!-- Total Users Card -->
-            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <!-- Total Users -->
+            <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
                 <div class="flex items-center">
                     <div class="p-3 rounded-full bg-blue-100 text-blue-500">
-                        <i class="fas fa-users text-2xl"></i>
+                        <i class="fas fa-users text-xl"></i>
                     </div>
                     <div class="ml-4">
                         <p class="text-sm text-gray-500 uppercase">Total Users</p>
-                        <p class="text-2xl font-semibold text-gray-800"><?php echo $total_users; ?></p>
+                        <p class="text-xl font-semibold text-gray-800"><?php echo $total_users; ?></p>
                     </div>
                 </div>
             </div>
 
-            <!-- Active Users Card -->
-            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <!-- Active Users -->
+            <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
                 <div class="flex items-center">
                     <div class="p-3 rounded-full bg-green-100 text-green-500">
-                        <i class="fas fa-user-check text-2xl"></i>
+                        <i class="fas fa-user-check text-xl"></i>
                     </div>
                     <div class="ml-4">
                         <p class="text-sm text-gray-500 uppercase">Active Users</p>
-                        <p class="text-2xl font-semibold text-gray-800"><?php echo $active_users; ?></p>
+                        <p class="text-xl font-semibold text-gray-800"><?php echo $active_users; ?></p>
                     </div>
                 </div>
             </div>
 
-            <!-- Total Registrations Card -->
-            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <!-- Total Registrations -->
+            <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
                 <div class="flex items-center">
                     <div class="p-3 rounded-full bg-purple-100 text-purple-500">
-                        <i class="fas fa-ticket-alt text-2xl"></i>
+                        <i class="fas fa-ticket-alt text-xl"></i>
                     </div>
                     <div class="ml-4">
-                        <p class="text-sm text-gray-500 uppercase">Total Registrations</p>
-                        <p class="text-2xl font-semibold text-gray-800"><?php echo $total_registrations; ?></p>
+                        <p class="text-sm text-gray-500 uppercase">Registrations</p>
+                        <p class="text-xl font-semibold text-gray-800"><?php echo $total_registrations; ?></p>
                     </div>
                 </div>
             </div>
 
-            <!-- Average Events per User -->
-            <div class="bg-white rounded-xl shadow-md p-6 border border-gray-100">
+            <!-- Average Events -->
+            <div class="bg-white rounded-xl shadow-sm p-4 border border-gray-200">
                 <div class="flex items-center">
                     <div class="p-3 rounded-full bg-yellow-100 text-yellow-500">
-                        <i class="fas fa-chart-line text-2xl"></i>
+                        <i class="fas fa-chart-line text-xl"></i>
                     </div>
                     <div class="ml-4">
                         <p class="text-sm text-gray-500 uppercase">Avg Events/User</p>
-                        <p class="text-2xl font-semibold text-gray-800">
+                        <p class="text-xl font-semibold text-gray-800">
                             <?php echo $total_users > 0 ? number_format($total_registrations / $total_users, 1) : '0'; ?>
                         </p>
                     </div>
@@ -141,36 +172,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_id'])) {
             </div>
         </div>
 
-        <!-- Users Table -->
-        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100">
-            <div class="p-6 bg-white border-b">
-                <div class="flex justify-between items-center">
-                    <div>
-                        <h2 class="text-xl font-semibold text-gray-800">
-                            <i class="fas fa-user-circle mr-2 text-blue-500"></i>
-                            User List
-                        </h2>
-                        <p class="text-sm text-gray-500 mt-1">
-                            Manage all registered users and their event participation
-                        </p>
-                    </div>
-                    <div class="relative">
-                        <input type="text" id="searchInput" placeholder="Search users..." 
-                               class="px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-                        <i class="fas fa-search absolute right-3 top-3 text-gray-400"></i>
-                    </div>
+        <!-- Users List Section -->
+        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-200">
+            <!-- List Header -->
+            <div class="p-4 sm:p-6 bg-white border-b">
+                <div class="flex items-center">
+                    <i class="fas fa-user-circle text-blue-500 text-xl sm:text-2xl mr-2"></i>
+                    <h2 class="text-lg sm:text-xl font-semibold text-gray-800">User List</h2>
                 </div>
             </div>
-            
-            <div class="overflow-x-auto">
+
+            <!-- Desktop View -->
+            <div class="hidden md:block overflow-x-auto custom-scrollbar">
                 <table class="w-full">
                     <thead>
                         <tr class="bg-gray-50">
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Events</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Contact</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Events</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y divide-gray-200">
@@ -196,19 +217,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_id'])) {
                                 </div>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="text-sm text-gray-900">
-                                    <?php if (empty($user['registered_events'])): ?>
-                                        <span class="text-gray-500">No events registered</span>
-                                    <?php else: ?>
-                                        <div class="flex flex-wrap gap-2">
-                                            <?php foreach ($user['registered_events'] as $event): ?>
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                                    <?php echo htmlspecialchars($event); ?>
-                                                </span>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
+                                <?php if (empty($user['registered_events'])): ?>
+                                    <span class="text-sm text-gray-500">No events registered</span>
+                                <?php else: ?>
+                                    <div class="flex flex-wrap gap-2">
+                                        <?php foreach ($user['registered_events'] as $event): ?>
+                                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                <?php echo htmlspecialchars($event); ?>
+                                            </span>
+                                        <?php endforeach; ?>
+                                    </div>
+                                <?php endif; ?>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <?php if ($user['event_count'] > 0): ?>
@@ -232,65 +251,213 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_user_id'])) {
                     </tbody>
                 </table>
             </div>
-        </div>
-    </div>
 
-    <!-- Enhanced Modal -->
-    <div id="confirmDeleteModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-6 rounded-xl shadow-lg max-w-md w-full mx-4 fade-in">
-            <div class="text-center mb-6">
-                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+            <!-- Mobile View -->
+            <div class="md:hidden">
+                <?php foreach ($users as $user): ?>
+                <div class="user-card p-4 bg-white border-b border-gray-200">
+                    <!-- User Header -->
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center">
+                            <div class="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span class="text-blue-600 font-semibold">
+                                    <?php echo strtoupper(substr($user['name'], 0, 2)); ?>
+                                </span>
+                            </div>
+                            <div class="ml-3">
+                                <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($user['name']); ?></div>
+                                <div class="text-xs text-gray-500">ID: #<?php echo $user['id']; ?></div>
+                            </div>
+                        </div>
+                        <?php if ($user['event_count'] > 0): ?>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                Active
+                            </span>
+                        <?php else: ?>
+                            <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                Inactive
+                            </span>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- User Details -->
+                    <div class="space-y-2">
+                        <!-- Email -->
+                        <div class="flex items-center text-sm">
+                            <i class="fas fa-envelope text-gray-400 w-5"></i>
+                            <span class="ml-2 text-gray-600 break-all"><?php echo htmlspecialchars($user['email']); ?></span>
+                        </div>
+
+                        <!-- Events -->
+                        <div class="mt-2">
+                            <div class="flex items-start">
+                                <i class="fas fa-calendar text-gray-400 w-5 mt-1"></i>
+                                <div class="ml-2">
+                                    <?php if (empty($user['registered_events'])): ?>
+                                        <span class="text-sm text-gray-500">No events registered</span>
+                                    <?php else: ?>
+                                        <div class="flex flex-wrap gap-2">
+                                        <?php foreach ($user['registered_events'] as $event): ?>
+    <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 mb-1">
+        <?php echo htmlspecialchars($event); ?>
+    </span>
+<?php endforeach; ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="mt-4 flex justify-end">
+                            <button onclick="confirmDelete(<?php echo $user['id']; ?>)" 
+                                    class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300 flex items-center text-sm">
+                                <i class="fas fa-trash-alt mr-2"></i> Delete User
+                            </button>
+                        </div>
+                    </div>
                 </div>
-                <h2 class="text-2xl font-bold text-gray-900 mb-2">Confirm Deletion</h2>
-                <p class="text-gray-500">Are you sure you want to delete this user? This action cannot be undone.</p>
-            </div>
-            <div class="flex justify-center space-x-4">
-                <button onclick="closeModal()" 
-                        class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition duration-300 flex items-center">
-                    <i class="fas fa-times mr-2"></i> Cancel
-                </button>
-                <form id="deleteForm" method="POST" class="inline">
-                    <input type="hidden" name="delete_user_id" value="">
-                    <button type="submit" 
-                            class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300 flex items-center">
-                        <i class="fas fa-trash-alt mr-2"></i> Yes, Delete
-                    </button>
-                </form>
+                <?php endforeach; ?>
             </div>
         </div>
     </div>
 
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 m-4 max-w-sm w-full fade-in">
+            <div class="flex items-center justify-center mb-4">
+                <div class="rounded-full bg-red-100 p-3">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                </div>
+            </div>
+            <h3 class="text-xl font-bold text-center mb-4">Confirm Delete</h3>
+            <p class="text-gray-600 text-center mb-6">Are you sure you want to delete this user? This action cannot be undone.</p>
+            <form id="deleteForm" method="POST" class="flex justify-center gap-3">
+                <input type="hidden" id="delete_user_id" name="delete_user_id" value="">
+                <button type="button" onclick="closeDeleteModal()" 
+                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition duration-300">
+                    Cancel
+                </button>
+                <button type="submit" 
+                        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300">
+                    Delete
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Search functionality script -->
     <script>
-        function confirmDelete(userId) {
-            const modal = document.getElementById('confirmDeleteModal');
-            const deleteForm = document.getElementById('deleteForm');
-            deleteForm.querySelector('input[name="delete_user_id"]').value = userId;
-            modal.classList.remove('hidden');
-        }
+        const searchInput = document.getElementById('searchInput');
+        const userCards = document.querySelectorAll('.user-card');
+        const userRows = document.querySelectorAll('tbody tr');
 
-        function closeModal() {
-            const modal = document.getElementById('confirmDeleteModal');
-            modal.classList.add('hidden');
-        }
+        searchInput.addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
 
-        // Search functionality
-        document.getElementById('searchInput').addEventListener('keyup', function(e) {
-            const searchText = e.target.value.toLowerCase();
-            const tableRows = document.querySelectorAll('tbody tr');
-            
-            tableRows.forEach(row => {
-                const name = row.querySelector('td:first-child').textContent.toLowerCase();
-                const email = row.querySelector('td:nth-child(2)').textContent.toLowerCase();
-                const events = row.querySelector('td:nth-child(3)').textContent.toLowerCase();
-                
-                if (name.includes(searchText) || email.includes(searchText) || events.includes(searchText)) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
+            // Filter desktop view
+            userRows.forEach(row => {
+                const userName = row.querySelector('.text-gray-900').textContent.toLowerCase();
+                const userEmail = row.querySelector('.text-gray-900:last-of-type').textContent.toLowerCase();
+                const shouldShow = userName.includes(searchTerm) || userEmail.includes(searchTerm);
+                row.style.display = shouldShow ? '' : 'none';
+            });
+
+            // Filter mobile view
+            userCards.forEach(card => {
+                const userName = card.querySelector('.font-medium').textContent.toLowerCase();
+                const userEmail = card.querySelector('.text-gray-600').textContent.toLowerCase();
+                const shouldShow = userName.includes(searchTerm) || userEmail.includes(searchTerm);
+                card.style.display = shouldShow ? '' : 'none';
             });
         });
+
+        // Modal functionality
+        function confirmDelete(userId) {
+            document.getElementById('deleteModal').style.display = 'flex';
+            document.getElementById('delete_user_id').value = userId;
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+
+        // Add touch feedback for mobile devices
+        document.querySelectorAll('.user-card').forEach(card => {
+            card.addEventListener('touchstart', function() {
+                this.classList.add('scale-98');
+            });
+            card.addEventListener('touchend', function() {
+                this.classList.remove('scale-98');
+            });
+        });
+
+        // Add responsive navigation menu toggle
+        const menuToggle = document.querySelector('.menu-toggle');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        
+        if (menuToggle && mobileMenu) {
+            menuToggle.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+        }
     </script>
+
+    <!-- Add additional styles for better mobile experience -->
+    <style>
+        @media (max-width: 640px) {
+            .container {
+                padding-left: 1rem;
+                padding-right: 1rem;
+            }
+            
+            .user-card {
+                margin-bottom: 0.75rem;
+            }
+            
+            .statistics-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.75rem;
+            }
+            
+            .search-input {
+                width: 100%;
+                margin-bottom: 1rem;
+            }
+        }
+
+        /* Add smooth scaling animation for touch feedback */
+        .scale-98 {
+            transform: scale(0.98);
+            transition: transform 0.1s ease-in-out;
+        }
+
+        /* Improve scrolling on mobile */
+        .custom-scrollbar {
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: thin;
+        }
+
+        /* Optimize tap targets for mobile */
+        @media (max-width: 640px) {
+            button, 
+            .user-card,
+            input[type="text"] {
+                min-height: 44px;
+                padding: 0.75rem;
+            }
+            
+            .badge {
+                padding: 0.5rem 0.75rem;
+            }
+        }
+    </style>
 </body>
 </html>

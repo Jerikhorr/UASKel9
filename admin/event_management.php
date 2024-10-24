@@ -1,5 +1,4 @@
 <?php
-// event_management.php
 session_start();
 require_once('../includes/config.php');
 require_once('../includes/db_connect.php');
@@ -355,111 +354,162 @@ $result = mysqli_query($conn, $query);
             </div>
         </form>
 
-        <!-- Events List -->
-        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-            <div class="px-6 py-4 border-b border-gray-200">
-                <h2 class="text-xl font-semibold text-gray-800">Event List</h2>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Banner</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Details</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <?php while ($event = mysqli_fetch_assoc($result)): ?>
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 whitespace-nowrap">
-                                    <?php if (!empty($event['banner'])): ?>
-                                        <img src="<?php echo htmlspecialchars($event['banner']); ?>" 
-                                             alt="Event Banner" 
-                                             class="h-20 w-32 object-cover rounded-lg">
-                                    <?php else: ?>
-                                        <div class="h-20 w-32 bg-gray-100 rounded-lg flex items-center justify-center">
-                                            <i class="fas fa-image text-gray-400 text-2xl"></i>
-                                        </div>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($event['name']); ?></div>
-                                    <div class="text-sm text-gray-500">
-                                        <i class="fas fa-users mr-1"></i>
-                                        <?php echo $event['registrant_count']; ?> / <?php echo $event['max_participants']; ?> participants
+       <!-- Events List -->
+<div class="bg-white rounded-xl shadow-lg overflow-hidden">
+    <!-- Header -->
+    <div class="px-4 sm:px-6 py-4 border-b border-gray-200">
+        <h2 class="text-lg sm:text-xl font-semibold text-gray-800">Event List</h2>
+    </div>
+    
+    <!-- Table/Card Container -->
+    <div class="block">
+        <!-- Desktop/Tablet View (Table) -->
+        <div class="hidden md:block overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Banner</th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Event Details</th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200">
+                    <?php while ($event = mysqli_fetch_assoc($result)): ?>
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-4 sm:px-6 py-4 whitespace-nowrap">
+                                <?php if (!empty($event['banner'])): ?>
+                                    <img src="<?php echo htmlspecialchars($event['banner']); ?>" 
+                                         alt="Event Banner" 
+                                         class="h-16 w-24 sm:h-20 sm:w-32 object-cover rounded-lg">
+                                <?php else: ?>
+                                    <div class="h-16 w-24 sm:h-20 sm:w-32 bg-gray-100 rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-image text-gray-400 text-xl sm:text-2xl"></i>
                                     </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900">
+                                <?php endif; ?>
+                            </td>
+                            <td class="px-4 sm:px-6 py-4">
+                                <div class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($event['name']); ?></div>
+                                <div class="text-xs sm:text-sm text-gray-500">
+                                    <i class="fas fa-users mr-1"></i>
+                                    <?php echo $event['registrant_count']; ?> / <?php echo $event['max_participants']; ?> participants
+                                </div>
+                            </td>
+                            <td class="px-4 sm:px-6 py-4">
+                                <div class="text-sm text-gray-900">
                                     <i class="far fa-calendar-alt mr-1"></i>
-                                        <?php echo date('M d, Y', strtotime($event['date'])); ?>
-                                    </div>
-                                    <div class="text-sm text-gray-500">
-                                        <i class="far fa-clock mr-1"></i>
-                                        <?php echo date('h:i A', strtotime($event['time'])); ?>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-900">
-                                        <i class="fas fa-map-marker-alt mr-1"></i>
-                                        <?php echo htmlspecialchars($event['location']); ?>
-                                    </div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <?php
-                                    $status_colors = [
-                                        'upcoming' => 'bg-yellow-100 text-yellow-800',
-                                        'active' => 'bg-green-100 text-green-800',
-                                        'completed' => 'bg-blue-100 text-blue-800',
-                                        'canceled' => 'bg-red-100 text-red-800'
-                                    ];
-                                    $status_class = $status_colors[$event['status']] ?? 'bg-gray-100 text-gray-800';
-                                    ?>
-                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $status_class; ?>">
-                                        <?php echo ucfirst(htmlspecialchars($event['status'])); ?>
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-sm font-medium">
-                                    <div class="flex space-x-3">
+                                    <?php echo date('M d, Y', strtotime($event['date'])); ?>
+                                </div>
+                                <div class="text-xs sm:text-sm text-gray-500">
+                                    <i class="far fa-clock mr-1"></i>
+                                    <?php echo date('h:i A', strtotime($event['time'])); ?>
+                                </div>
+                            </td>
+                            <td class="px-4 sm:px-6 py-4">
+                                <div class="text-sm text-gray-900">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    <?php echo htmlspecialchars($event['location']); ?>
+                                </div>
+                            </td>
+                            <td class="px-4 sm:px-6 py-4">
+                                <?php
+                                $status_colors = [
+                                    'upcoming' => 'bg-yellow-100 text-yellow-800',
+                                    'active' => 'bg-green-100 text-green-800',
+                                    'completed' => 'bg-blue-100 text-blue-800',
+                                    'canceled' => 'bg-red-100 text-red-800'
+                                ];
+                                $status_class = $status_colors[$event['status']] ?? 'bg-gray-100 text-gray-800';
+                                ?>
+                                <span class="px-2 sm:px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full <?php echo $status_class; ?>">
+                                    <?php echo ucfirst(htmlspecialchars($event['status'])); ?>
+                                </span>
+                            </td>
+                            <td class="px-4 sm:px-6 py-4 text-sm font-medium">
+                                <div class="flex space-x-3">
                                     <a href="event_management.php?edit=<?php echo $event['id']; ?>" 
-                                        class="text-blue-600 hover:text-blue-900 transition-colors">
+                                       class="text-blue-600 hover:text-blue-900 transition-colors">
                                         <i class="fas fa-edit"></i>
-                                                </a>
-                                                    <button onclick="deleteEvent(<?php echo $event['id']; ?>)"
-                                                class="text-red-600 hover:text-red-900 transition-colors">
-                                            <i class="fas fa-trash-alt"></i>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        <?php endwhile; ?>
-                    </tbody>
-                </table>
-            </div>
+                                    </a>
+                                    <button onclick="deleteEvent(<?php echo $event['id']; ?>)"
+                                            class="text-red-600 hover:text-red-900 transition-colors">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endwhile; ?>
+                </tbody>
+            </table>
         </div>
-    </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden items-center justify-center">
-        <div class="bg-white rounded-lg p-8 max-w-md mx-auto">
-            <h3 class="text-xl font-bold mb-4">Confirm Delete</h3>
-            <p class="text-gray-600 mb-6">Are you sure you want to delete this event? This action cannot be undone.</p>
-            <div class="flex justify-end space-x-4">
-                <button onclick="closeDeleteModal()" 
-                        class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-                    Cancel
-                </button>
-                <button onclick="confirmDelete()" 
-                        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                    Delete
-                </button>
-            </div>
+        <!-- Mobile View (Cards) -->
+        <div class="md:hidden">
+            <?php 
+            mysqli_data_seek($result, 0); // Reset result pointer
+            while ($event = mysqli_fetch_assoc($result)): 
+            ?>
+                <div class="p-4 border-b border-gray-200">
+                    <div class="flex items-start space-x-4">
+                        <!-- Event Banner -->
+                        <div class="flex-shrink-0">
+                            <?php if (!empty($event['banner'])): ?>
+                                <img src="<?php echo htmlspecialchars($event['banner']); ?>" 
+                                     alt="Event Banner" 
+                                     class="h-20 w-24 object-cover rounded-lg">
+                            <?php else: ?>
+                                <div class="h-20 w-24 bg-gray-100 rounded-lg flex items-center justify-center">
+                                    <i class="fas fa-image text-gray-400 text-2xl"></i>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Event Details -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-start">
+                                <h3 class="text-sm font-medium text-gray-900"><?php echo htmlspecialchars($event['name']); ?></h3>
+                                <span class="px-2 py-1 text-xs font-semibold rounded-full <?php echo $status_class; ?>">
+                                    <?php echo ucfirst(htmlspecialchars($event['status'])); ?>
+                                </span>
+                            </div>
+
+                            <div class="mt-2 space-y-1">
+                                <div class="text-xs text-gray-500">
+                                    <i class="fas fa-users mr-1"></i>
+                                    <?php echo $event['registrant_count']; ?> / <?php echo $event['max_participants']; ?> participants
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    <i class="far fa-calendar-alt mr-1"></i>
+                                    <?php echo date('M d, Y', strtotime($event['date'])); ?>
+                                    <i class="far fa-clock ml-2 mr-1"></i>
+                                    <?php echo date('h:i A', strtotime($event['time'])); ?>
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    <i class="fas fa-map-marker-alt mr-1"></i>
+                                    <?php echo htmlspecialchars($event['location']); ?>
+                                </div>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="mt-3 flex space-x-4">
+                                <a href="event_management.php?edit=<?php echo $event['id']; ?>" 
+                                   class="text-blue-600 hover:text-blue-900 transition-colors text-sm">
+                                    <i class="fas fa-edit mr-1"></i> Edit
+                                </a>
+                                <button onclick="deleteEvent(<?php echo $event['id']; ?>)"
+                                        class="text-red-600 hover:text-red-900 transition-colors text-sm">
+                                    <i class="fas fa-trash-alt mr-1"></i> Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            <?php endwhile; ?>
         </div>
     </div>
+</div>
 
     <script>
         let currentEventId = null;
