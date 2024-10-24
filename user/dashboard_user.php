@@ -11,7 +11,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'user') {
 
 $conn = getDBConnection();
 
-// Query untuk mendapatkan semua event dengan prioritas status
 $query_events = "SELECT 
     e.*, 
     COALESCE(r.registrant_count, 0) as current_participants
@@ -32,11 +31,10 @@ ORDER BY
         WHEN e.status = 'upcoming' THEN 2
         ELSE 3 
     END,
-    e.date ASC"; // Urutkan berdasarkan tanggal setelah status
+    e.date ASC";
 
 $result_events = mysqli_query($conn, $query_events);
 
-// Ambil daftar event yang sudah didaftarkan user
 $user_id = $_SESSION['user_id'];
 $registered_events_query = "SELECT event_id FROM registrations WHERE user_id = '$user_id'";
 $result_registered_events = mysqli_query($conn, $registered_events_query);
@@ -57,141 +55,206 @@ mysqli_close($conn);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>User Dashboard - Events</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            min-height: 100vh;
+        }
+
         .event-card {
-            transition: transform 0.2s;
-            cursor: pointer;
+            position: relative;
+            background: white;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            border-radius: 0.5rem;
+            padding: 0.5rem;
+            height: auto;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
+
         .event-card:hover {
-            transform: scale(1.02);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
+
         .banner-image {
-            height: 200px;
+            height: 120px;
             object-fit: cover;
             width: 100%;
-            border-top-left-radius: 0.5rem;
-            border-top-right-radius: 0.5rem;
+            transition: transform 0.3s ease;
         }
+
+        .event-card:hover .banner-image {
+            transform: scale(1.05);
+        }
+
         .registered-badge {
             position: absolute;
-            top: 10px;
-            left: 10px;
-            background-color: #28a745;
+            top: 8px;
+            left: 8px;
+            background: linear-gradient(135deg, #22c55e, #16a34a);
             color: white;
-            padding: 5px 10px;
-            border-radius: 5px;
-            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            transition: background-color 0.3s ease;
+        }
+
+        .participants-badge {
+            background: #f3f4f6;
+            padding: 0.25rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .event-info {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: #6b7280;
+            margin-bottom: 0.25rem;
+        }
+
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
     </style>
 </head>
-<body>
-    <div class="container mx-auto px-4 py-8">
-        <!-- Navbar -->
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold">
-                <a href="../user/login.php" class="text-black hover:no-underline">User Dashboard</a>
-            </h1>
-            <div class="space-x-4">
-                <a href="../user/profile.php" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
-                    Profile
-                </a>
-                <a href="../user/registered_event.php" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-                    Registered Event
-                </a>
-            </div>
-        </div>
+<body class="bg-gray-50">
+    <?php include '../includes/navbar_user.php'; ?>
 
-        <!-- Alert Messages -->
+    <div class="container mx-auto px-4 py-8">
         <?php if (isset($_SESSION['message'])): ?>
-            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4" role="alert">
-                <?php echo $_SESSION['message']; unset($_SESSION['message']); ?>
+            <div class="message bg-green-100 border-l-4 border-green-500 text-green-700">
+                <div class="flex items-center">
+                    <i class="fas fa-check-circle mr-3"></i>
+                    <?php echo $_SESSION['message']; unset($_SESSION['message']); ?>
+                </div>
             </div>
         <?php elseif (isset($_SESSION['error'])): ?>
-            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
-                <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+            <div class="message bg-red-100 border-l-4 border-red-500 text-red-700">
+                <div class="flex items-center">
+                    <i class="fas fa-exclamation-circle mr-3"></i>
+                    <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
+                </div>
             </div>
         <?php endif; ?>
 
-        <h1 class="text-2xl font-semibold mb-6">Available Events</h1>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <?php if (mysqli_num_rows($result_events) > 0): ?>
+                <?php while($event = mysqli_fetch_assoc($result_events)): 
+                    $is_registered = in_array($event['id'], $registered_events);
+                    $status = htmlspecialchars($event['status']);
 
-<!-- Available Events Display -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <?php if (mysqli_num_rows($result_events) > 0): ?>
-        <?php while($event = mysqli_fetch_assoc($result_events)): 
-            $is_registered = in_array($event['id'], $registered_events);
-            // Ambil status dari database
-            $status = htmlspecialchars($event['status']); // Pastikan untuk mengamankan output
+                    switch ($status) {
+                        case 'upcoming':
+                            $status_class = 'bg-blue-100 text-blue-800';
+                            $status_icon = 'fa-clock';
+                            break;
+                        case 'active':
+                            $status_class = 'bg-green-100 text-green-800';
+                            $status_icon = 'fa-check-circle';
+                            break;
+                        case 'canceled':
+                            $status_class = 'bg-red-100 text-red-800';
+                            $status_icon = 'fa-times-circle';
+                            break;
+                        case 'completed':
+                            $status_class = 'bg-gray-100 text-gray-800';
+                            $status_icon = 'fa-flag-checkered';
+                            break;
+                        default:
+                            $status_class = 'bg-gray-100 text-gray-800';
+                            $status_icon = 'fa-info-circle';
+                    }
+                ?>
+                    <div class="event-card rounded-xl">
+                        <?php if($is_registered): ?>
+                            <div class="registered-badge">
+                                <i class="fas fa-check-circle mr-1"></i> Registered
+                            </div>
+                        <?php endif; ?>
 
-            // Tentukan warna berdasarkan status
-            switch ($status) {
-                case 'upcoming':
-                    $status_class = 'bg-blue-100 text-blue-800';
-                    break;
-                case 'active':
-                    $status_class = 'bg-green-100 text-green-800';
-                    break;
-                case 'canceled':
-                    $status_class = 'bg-red-100 text-red-800';
-                    break;
-                case 'completed':
-                    $status_class = 'bg-gray-100 text-gray-800';
-                    break;
-                default:
-                    $status_class = 'bg-gray-200 text-gray-800'; // Default color if status is unknown
-            }
-        ?>
-            <div class="relative bg-white shadow-md rounded-lg overflow-hidden event-card" onclick="window.location.href='event_details.php?id=<?php echo $event['id']; ?>'">
-                <?php if($is_registered): ?>
-                    <div class="registered-badge">
-                        Registered
-                    </div>
-                <?php endif; ?>
-                
-                <?php if($event['banner']): ?>
-                    <img src="<?php echo htmlspecialchars($event['banner']); ?>" 
-                         class="banner-image" 
-                         alt="Event banner">
-                <?php endif; ?>
-                
-                <div class="p-4">
-                    <h2 class="text-xl font-bold mb-2"><?php echo htmlspecialchars($event['name']); ?></h2>
-                    <p class="text-gray-700 mb-4"><?php echo htmlspecialchars(substr($event['description'], 0, 100)) . '...'; ?></p>
-                    
-                    <div class="text-sm text-gray-600 mb-2">
-                        <i class="fas fa-calendar-alt"></i> 
-                        <?php echo date('F d, Y', strtotime($event['date'])); ?>
-                        at <?php echo date('h:i A', strtotime($event['time'])); ?>
-                    </div>
-                    <div class="text-sm text-gray-600">
-                        <i class="fas fa-map-marker-alt"></i> 
-                        <?php echo htmlspecialchars($event['location']); ?>
-                    </div>
+                        <a href="event_details.php?id=<?php echo $event['id']; ?>" class="block">
+                            <?php if($event['banner']): ?>
+                                <div class="overflow-hidden">
+                                    <img src="<?php echo htmlspecialchars($event['banner']); ?>" 
+                                        class="banner-image" 
+                                        alt="Event banner">
+                                </div>
+                            <?php endif; ?>
+                            
+                            <div class="p-6">
+                                <h2 class="text-xl font-bold mb-3 text-gray-900">
+                                    <?php echo htmlspecialchars($event['name']); ?>
+                                </h2>
+                                
+                                <p class="text-gray-600 mb-4 line-clamp-2">
+                                    <?php echo htmlspecialchars(substr($event['description'], 0, 100)) . '...'; ?>
+                                </p>
+                                
+                                <div class="event-info">
+                                    <i class="fas fa-calendar-alt text-blue-500"></i>
+                                    <span><?php echo date('F d, Y', strtotime($event['date'])); ?>
+                                    at <?php echo date('h:i A', strtotime($event['time'])); ?></span>
+                                </div>
+                                
+                                <div class="event-info">
+                                    <i class="fas fa-map-marker-alt text-red-500"></i>
+                                    <span><?php echo htmlspecialchars($event['location']); ?></span>
+                                </div>
 
-                    <div class="mt-3">
-                        <span class="bg-blue-100 text-blue-800 text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-                            <?php echo $event['current_participants']; ?>/<?php echo $event['max_participants']; ?> participants
-                        </span>
+                                <div class="mt-6 flex items-center justify-between">
+                                    <span class="status-badge <?php echo $status_class; ?>">
+                                        <i class="fas <?php echo $status_icon; ?>"></i>
+                                        <?php echo ucfirst($status); ?>
+                                    </span>
+                                    
+                                    <div class="participants-badge">
+                                        <i class="fas fa-users text-gray-500"></i>
+                                        <span><?php echo $event['current_participants']; ?>/<?php echo $event['max_participants']; ?></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
                     </div>
-                    
-                    <!-- Tampilkan Status Event dari Database dengan Warna Berdasarkan Status -->
-                    <div class="mt-2">
-                        <span class="<?php echo $status_class; ?> text-xs font-medium mr-2 px-2.5 py-0.5 rounded">
-                            Status: <?php echo $status; ?>
-                        </span>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <div class="col-span-full">
+                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-exclamation-circle text-yellow-400 text-2xl mr-4"></i>
+                            <div>
+                                <h3 class="text-lg font-medium text-yellow-800">No Events Available</h3>
+                                <p class="text-yellow-700">Check back later for upcoming events!</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        <?php endwhile; ?>
-    <?php else: ?>
-        <div class="col-span-1 md:col-span-2 lg:col-span-3">
-            <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
-                <strong>No events available at the moment.</strong>
-            </div>
+            <?php endif; ?>
         </div>
-    <?php endif; ?>
-</div>
+    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
 </body>
 </html>

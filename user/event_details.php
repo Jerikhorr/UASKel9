@@ -91,22 +91,8 @@ mysqli_close($conn);
     </style>
 </head>
 <body>
-    <div class="container mx-auto px-4 py-8">
         <!-- Navbar -->
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold">
-                <a href="dashboard_user.php" class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 ">Back to Dashboard</a>
-            </h1> 
-            <div class="space-x-4">
-                <a href="../user/profile.php" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600">
-                    Profile
-                </a>
-                <a href="../user/registered_event.php" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600">
-                    Registered Event
-                </a>
-            </div>
-        </div>
-
+        <?php include '../includes/navbar_user.php'; ?>
         <!-- Event Details -->
         <div class="bg-white shadow-md rounded-lg overflow-hidden">
             <?php if ($event['banner']): ?>
