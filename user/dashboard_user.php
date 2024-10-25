@@ -1,16 +1,38 @@
 <?php
 session_start();
-require_once('../includes/config.php');
-require_once('../includes/db_connect.php');
-require_once('../includes/functions.php');
+require_once '../config/config.php';
 
+<<<<<<< Updated upstream
+// Fetch all available events
+$sql_events = "SELECT e.*, 
+               (SELECT COUNT(*) FROM registrations er WHERE er.event_id = e.id) as current_participants 
+               FROM events e 
+               WHERE e.date >= CURRENT_DATE AND e.status = 'active' 
+               ORDER BY e.date ASC";
+$result_events = mysqli_query($conn, $sql_events);
+
+if (!$result_events) {
+    die("Error fetching available events: " . mysqli_error($conn));
+}
+
+// Fetch user's registered events
+=======
+// Cek apakah user sudah login dan peran adalah 'user'
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'user') {
     header("Location: ../user/login.php");
     exit();
 }
 
+// Jika tombol logout diklik
+if (isset($_POST['logout'])) {
+    session_destroy(); // Menghapus semua session
+    header("Location: ../user/login.php"); // Redirect ke halaman login
+    exit();
+}
+
 $conn = getDBConnection();
 
+// Query untuk mendapatkan semua event dengan prioritas status
 $query_events = "SELECT 
     e.*, 
     COALESCE(r.registrant_count, 0) as current_participants
@@ -35,6 +57,8 @@ ORDER BY
 
 $result_events = mysqli_query($conn, $query_events);
 
+// Ambil daftar event yang sudah didaftarkan user
+>>>>>>> Stashed changes
 $user_id = $_SESSION['user_id'];
 $registered_events_query = "SELECT event_id FROM registrations WHERE user_id = '$user_id'";
 $result_registered_events = mysqli_query($conn, $registered_events_query);
@@ -57,88 +81,8 @@ mysqli_close($conn);
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-            min-height: 100vh;
-        }
-
-        .event-card {
-            position: relative;
-            background: white;
-            border: 1px solid rgba(0, 0, 0, 0.05);
-            border-radius: 0.5rem;
-            padding: 0.5rem;
-            height: auto;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .event-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .banner-image {
-            height: 120px;
-            object-fit: cover;
-            width: 100%;
-            transition: transform 0.3s ease;
-        }
-
-        .event-card:hover .banner-image {
-            transform: scale(1.05);
-        }
-
-        .registered-badge {
-            position: absolute;
-            top: 8px;
-            left: 8px;
-            background: linear-gradient(135deg, #22c55e, #16a34a);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-            z-index: 10;
-        }
-
-        .status-badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-            transition: background-color 0.3s ease;
-        }
-
-        .participants-badge {
-            background: #f3f4f6;
-            padding: 0.25rem 0.5rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        .event-info {
-            display: flex;
-            align-items: center;
-            gap: 0.25rem;
-            color: #6b7280;
-            margin-bottom: 0.25rem;
-        }
-
-        .line-clamp-2 {
-            display: -webkit-box;
-            -webkit-line-clamp: 2;
-            -webkit-box-orient: vertical;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
+<<<<<<< Updated upstream
+        /* Your existing styles */
     </style>
 </head>
 <body class="bg-gray-50">
@@ -153,15 +97,93 @@ mysqli_close($conn);
                 </div>
             </div>
         <?php elseif (isset($_SESSION['error'])): ?>
-            <div class="message bg-red-100 border-l-4 border-red-500 text-red-700">
-                <div class="flex items-center">
-                    <i class="fas fa-exclamation-circle mr-3"></i>
-                    <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
-                </div>
+            <div class="alert alert-danger">
+=======
+        /* Kustomisasi tampilan */
+        .event-card {
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+            cursor: pointer;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .event-card:hover {
+            transform: scale(1.03);
+            box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .banner-image {
+            height: 180px;
+            object-fit: cover;
+            width: 100%;
+            border-top-left-radius: 0.5rem;
+            border-top-right-radius: 0.5rem;
+        }
+
+        .registered-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: #4CAF50;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 0.25rem;
+        }
+
+        .status-badge {
+            font-size: 0.875rem;
+            font-weight: bold;
+            border-radius: 0.375rem;
+            padding: 0.25rem 0.5rem;
+            display: inline-block;
+        }
+
+        .message {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <?php include 'navbar_user.php'; ?>
+
+    <!-- Tombol Logout -->
+    <div class="flex justify-end mr-8 mt-4">
+        <form method="POST">
+            <button type="submit" name="logout" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">
+                Logout
+            </button>
+        </form>
+    </div>
+
+    <!-- Container Utama -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Pesan Peringatan -->
+        <?php if (isset($_SESSION['message'])): ?>
+            <div class="message bg-green-100 border-l-4 border-green-500 text-green-700" role="alert">
+                <?php echo $_SESSION['message']; unset($_SESSION['message']); ?>
+            </div>
+        <?php elseif (isset($_SESSION['error'])): ?>
+            <div class="message bg-red-100 border-l-4 border-red-500 text-red-700" role="alert">
+>>>>>>> Stashed changes
+                <?php echo $_SESSION['error']; unset($_SESSION['error']); ?>
             </div>
         <?php endif; ?>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+<<<<<<< Updated upstream
+        <h1 class="page-title">Available Events</h1>
+
+        <!-- Button to Register for Events -->
+        <div class="mb-3">
+            <a href="registered_event.php" class="btn btn-primary">My Registered Events</a> <!-- Ubah route ke registered_event.php -->
+        </div>
+
+        <!-- Available Events Display -->
+        <div class="row">
             <?php if (mysqli_num_rows($result_events) > 0): ?>
                 <?php while($event = mysqli_fetch_assoc($result_events)): 
                     $is_registered = in_array($event['id'], $registered_events);
@@ -241,20 +263,16 @@ mysqli_close($conn);
                     </div>
                 <?php endwhile; ?>
             <?php else: ?>
-                <div class="col-span-full">
-                    <div class="bg-yellow-50 border-l-4 border-yellow-400 p-6 rounded-lg">
-                        <div class="flex items-center">
-                            <i class="fas fa-exclamation-circle text-yellow-400 text-2xl mr-4"></i>
-                            <div>
-                                <h3 class="text-lg font-medium text-yellow-800">No Events Available</h3>
-                                <p class="text-yellow-700">Check back later for upcoming events!</p>
-                            </div>
-                        </div>
+                <div class="col-12">
+                    <div class="alert alert-warning">
+                        <strong>No events available at the moment.</strong>
                     </div>
                 </div>
             <?php endif; ?>
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://kit.fontawesome.com/your-font-awesome-kit.js"></script>
 </body>
 </html>
