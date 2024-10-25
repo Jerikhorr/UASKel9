@@ -90,7 +90,6 @@ mysqli_close($conn);
         }
     </style>
 </head>
-<<<<<<< Updated upstream
 <body>
         <!-- Navbar -->
         <?php include '../includes/navbar_user.php'; ?>
@@ -105,34 +104,8 @@ mysqli_close($conn);
                 <?php if (!empty($success_message)): ?>
                     <div class="bg-green-500 text-white p-4 rounded mb-4"><?php echo $success_message; ?></div>
                 <?php endif; ?>
-            </div>
-        </div>
-
-        <div class="row">
-            <div class="col-md-8">
-                <?php if($event['banner']): ?>
-                    <img src="<?php echo htmlspecialchars($event['banner']); ?>" 
-                         class="event-image mb-4" 
-                         alt="Event banner">
-=======
-<body class="bg-gray-100">
-    <?php include 'navbar_user.php'; ?>
-
-    <div class="container mx-auto px-4 py-8">
-        <!-- Event Details -->
-        <div class="bg-white shadow-md rounded-lg overflow-hidden">
-            <?php if ($event['banner']): ?>
-                <img src="<?php echo htmlspecialchars($event['banner']); ?>" class="banner-image" alt="Event banner">
-            <?php endif; ?>
-            
-            <div class="p-6">
-                <!-- Display messages at the top -->
-                <?php if (!empty($success_message)): ?>
-                    <div class="bg-green-500 text-white p-4 rounded mb-4"><?php echo $success_message; ?></div>
-                <?php endif; ?>
                 <?php if (!empty($registration_message)): ?>
                     <div class="bg-red-500 text-white p-4 rounded mb-4"><?php echo $registration_message; ?></div>
->>>>>>> Stashed changes
                 <?php endif; ?>
 
                 <h2 class="text-2xl font-bold mb-4"><?php echo htmlspecialchars($event['name']); ?></h2>
