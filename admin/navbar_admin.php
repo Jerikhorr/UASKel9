@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start(); // Hanya mulai session jika belum ada session yang aktif
+}
 
 // Cek apakah pengguna sudah login dan mendapatkan peran admin
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
@@ -32,7 +35,6 @@ function isCurrentPage($path) {
 <nav class="bg-blue-600 shadow-lg">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="flex items-center justify-between h-16">
-            <!-- Bagian kiri: Logo dan teks Dashboard -->
             <div class="flex items-center">
                 <a href="dashboard_admin.php" class="flex items-center">
                     <img src="../logo/logoUAS.png" alt="Logo" class="h-12 w-12 mr-3">
@@ -40,7 +42,6 @@ function isCurrentPage($path) {
                 </a>
             </div>
 
-            <!-- Tombol Hamburger untuk mobile -->
             <div class="md:hidden">
                 <button id="hamburger-button" class="text-white focus:outline-none">
                     <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -49,7 +50,6 @@ function isCurrentPage($path) {
                 </button>
             </div>
 
-            <!-- Bagian kanan: Navigasi -->
             <div class="hidden md:flex items-center space-x-4">
                 <a href="event_management.php" 
                    class="<?php echo isCurrentPage('event_management.php'); ?> text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
@@ -61,7 +61,7 @@ function isCurrentPage($path) {
                     View Registrations
                 </a>
                 
-                <a href="./profile_admin.php" 
+                <a href="profile_admin.php" 
                    class="<?php echo isCurrentPage('profile_admin.php'); ?> text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
                     Profile
                 </a>
@@ -71,7 +71,6 @@ function isCurrentPage($path) {
                     User Management
                 </a>
 
-                <!-- Tombol Logout -->
                 <form action="" method="POST" class="m-0">
                     <button type="submit" 
                             name="logout"
@@ -83,7 +82,6 @@ function isCurrentPage($path) {
         </div>
     </div>
 
-    <!-- Menu Mobile -->
     <div id="mobile-menu" class="hidden md:hidden px-4 pb-4">
         <a href="event_management.php" 
            class="<?php echo isCurrentPage('event_management.php'); ?> text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
@@ -95,7 +93,7 @@ function isCurrentPage($path) {
             View Registrations
         </a>
         
-        <a href="./profile_admin.php" 
+        <a href="profile_admin.php" 
            class="<?php echo isCurrentPage('profile_admin.php'); ?> text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
             Profile
         </a>
@@ -105,7 +103,6 @@ function isCurrentPage($path) {
             User Management
         </a>
 
-        <!-- Tombol Logout untuk mobile -->
         <form action="" method="POST" class="m-0">
             <button type="submit" 
                     name="logout"

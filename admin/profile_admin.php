@@ -1,56 +1,25 @@
 <?php
-session_start();
-require '../includes/db_connect.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start(); // Hanya mulai session jika belum ada session yang aktif
+}
 
-// Dapatkan koneksi database
-$conn = getDBConnection();
-
-// Check if user is logged in and is admin
-if (!isset($_SESSION['user_id']) || $_SESSION['is_admin'] != 1) {
-    header('Location: login.php');
+// Cek apakah pengguna sudah login dan mendapatkan peran admin
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+    header("Location: ../user/login.php");
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
-
-// Fetch admin data from the 'admin' table
-$query = "SELECT * FROM admin WHERE id = ?";
-$stmt = $conn->prepare($query);
-$stmt->bind_param("i", $user_id);
-$stmt->execute();
-$result = $stmt->get_result();
-$user = $result->fetch_assoc();
-
-// If admin not found, redirect to login
-if (!$user) {
+// Tambahkan logika untuk logout
+if (isset($_POST['logout'])) {
     session_destroy();
-    header('Location: login.php');
+    header("Location: ../index.php");
     exit();
 }
 
-// Handle profile update
-$update_success = false;
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $name = sanitizeInput($_POST['name']);
-    $email = sanitizeInput($_POST['email']);
-    $password = $_POST['password'];
-
-    // Update admin data
-    $query = "UPDATE admin SET name = ?, email = ?" . (!empty($password) ? ", password = ?" : "") . " WHERE id = ?";
-    $stmt = $conn->prepare($query);
-    if (!empty($password)) {
-        $hashed_password = password_hash($password, PASSWORD_BCRYPT);
-        $stmt->bind_param("sssi", $name, $email, $hashed_password, $user_id);
-    } else {
-        $stmt->bind_param("ssi", $name, $email, $user_id);
-    }
-
-    if ($stmt->execute()) {
-        $update_success = true;
-        // Refresh admin data
-        $user['name'] = $name;
-        $user['email'] = $email;
-    }
+// Fungsi untuk memeriksa apakah halaman saat ini cocok dengan jalur yang diberikan
+function isCurrentPage($path) {
+    $current_page = basename($_SERVER['PHP_SELF']);
+    return $current_page === $path ? 'bg-blue-700' : '';
 }
 ?>
 
@@ -59,52 +28,102 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Profile</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-6">
-    <div class="max-w-2xl mx-auto bg-white p-6 rounded-md shadow-md">
-        <h1 class="text-2xl font-bold mb-4">Admin Profile</h1>
+<body>
 
-        <?php if ($update_success): ?>
-            <div class="bg-green-100 text-green-800 p-2 rounded mb-4">
-                Profile updated successfully.
-            </div>
-        <?php endif; ?>
-
-        <form action="profile_admin.php" method="POST" class="space-y-4">
-            <div>
-                <label for="name" class="block text-sm font-medium">Name:</label>
-                <input type="text" id="name" name="name" value="<?= escapeOutput($user['name']) ?>" class="w-full mt-1 p-2 border rounded-md" required disabled>
+<nav class="bg-blue-600 shadow-lg">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-16">
+            <div class="flex items-center">
+                <a href="dashboard_admin.php" class="flex items-center">
+                    <img src="../logo/logoUAS.png" alt="Logo" class="h-12 w-12 mr-3">
+                    <span class="text-white text-xl font-bold">Admin Dashboard</span>
+                </a>
             </div>
 
-            <div>
-                <label for="email" class="block text-sm font-medium">Email:</label>
-                <input type="email" id="email" name="email" value="<?= escapeOutput($user['email']) ?>" class="w-full mt-1 p-2 border rounded-md" required disabled>
+            <div class="md:hidden">
+                <button id="hamburger-button" class="text-white focus:outline-none">
+                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
             </div>
 
-            <div>
-                <label for="password" class="block text-sm font-medium">Password (Leave blank to keep current password):</label>
-                <input type="password" id="password" name="password" class="w-full mt-1 p-2 border rounded-md" disabled>
+            <div class="hidden md:flex items-center space-x-4">
+                <a href="event_management.php" 
+                   class="<?php echo isCurrentPage('event_management.php'); ?> text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
+                    Event Management
+                </a>
+                
+                <a href="view_registrations.php" 
+                   class="<?php echo isCurrentPage('view_registrations.php'); ?> text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
+                    View Registrations
+                </a>
+                
+                <a href="profile_admin.php" 
+                   class="<?php echo isCurrentPage('profile_admin.php'); ?> text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
+                    Profile
+                </a>
+
+                <a href="user_management.php" 
+                   class="<?php echo isCurrentPage('user_management.php'); ?> text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
+                    User Management
+                </a>
+
+                <form action="" method="POST" class="m-0">
+                    <button type="submit" 
+                            name="logout"
+                            class="bg-red-500 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-red-600 transition duration-150 ease-in-out">
+                        Logout
+                    </button>
+                </form>
             </div>
-
-            <button type="button" id="editBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Edit</button>
-            <button type="submit" class="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600 hidden" id="updateBtn">Update Profile</button>
-        </form>
-
-        <div class="mt-4">
-            <a href="dashboard_admin.php" class="inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Back to Admin Dashboard</a>
         </div>
     </div>
 
-    <script>
-        document.getElementById('editBtn').addEventListener('click', function() {
-            document.querySelectorAll('input').forEach(input => {
-                input.disabled = false;
-            });
-            this.classList.add('hidden');
-            document.getElementById('updateBtn').classList.remove('hidden');
-        });
-    </script>
+    <div id="mobile-menu" class="hidden md:hidden px-4 pb-4">
+        <a href="event_management.php" 
+           class="<?php echo isCurrentPage('event_management.php'); ?> text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
+            Event Management
+        </a>
+        
+        <a href="view_registrations.php" 
+           class="<?php echo isCurrentPage('view_registrations.php'); ?> text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
+            View Registrations
+        </a>
+        
+        <a href="profile_admin.php" 
+           class="<?php echo isCurrentPage('profile_admin.php'); ?> text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
+            Profile
+        </a>
+        
+        <a href="user_management.php" 
+           class="<?php echo isCurrentPage('user_management.php'); ?> text-white block px-3 py-2 rounded-md text-base font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
+            User Management
+        </a>
+
+        <form action="" method="POST" class="m-0">
+            <button type="submit" 
+                    name="logout"
+                    class="bg-red-500 text-white w-full text-left px-3 py-2 rounded-md text-base font-medium hover:bg-red-600 transition duration-150 ease-in-out">
+                Logout
+            </button>
+        </form>
+    </div>
+</nav>
+
+<!-- JavaScript untuk toggle menu mobile -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenu = document.getElementById('mobile-menu');
+    const hamburgerButton = document.getElementById('hamburger-button');
+    
+    hamburgerButton.addEventListener('click', function() {
+        mobileMenu.classList.toggle('hidden');
+    });
+});
+</script>
+
 </body>
 </html>

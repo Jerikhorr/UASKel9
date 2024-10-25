@@ -10,7 +10,7 @@
     <div class="flex space-x-4">
         <a href="event_management.php" class="nav-link">Event Management</a>
         <a href="view_registrations.php" class="nav-link">View Registrations</a>
-        <a href="profile.php" class="nav-link">Profile</a>
+        <a href="profile_user.php" class="nav-link">Profile</a>
         <a href="user_management.php" class="nav-link">User Management</a>
         <a href="../user/logout.php" class="logout nav-link">Logout</a>
     </div>
