@@ -1,8 +1,14 @@
 <?php
-
 // Cek apakah pengguna telah login dan memiliki peran 'user'
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'user') {
     header("Location: ../user/login.php");
+    exit();
+}
+
+// Tambahkan logic untuk logout
+if (isset($_POST['logout'])) {
+    session_destroy();
+    header("Location: ../index.php");
     exit();
 }
 
@@ -33,10 +39,13 @@ function isCurrentPage($path) {
                     Profile
                 </a>
 
-                <a href="../user/login.php" 
-                   class="bg-red-500 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-red-600 transition duration-150 ease-in-out">
-                    Logout
-                </a>
+                <form action="" method="POST" class="m-0">
+                    <button type="submit" 
+                            name="logout"
+                            class="bg-red-500 text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-red-600 transition duration-150 ease-in-out">
+                        Logout
+                    </button>
+                </form>
             </div>
         </div>
     </div>
