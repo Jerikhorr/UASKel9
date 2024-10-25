@@ -122,15 +122,18 @@ function uploadImage($file) {
     }
 }
 
+
 function getStatusBadgeClass($status) {
-    return match($status) {
-        'active' => 'bg-green-100 text-green-800',
-        'upcoming' => 'bg-blue-100 text-blue-800',
-        'closed' => 'bg-gray-100 text-gray-800',
-        'canceled' => 'bg-red-100 text-red-800',
-        default => 'bg-gray-100 text-gray-800'
-    };
+    $status_colors = [
+        'upcoming' => 'inline-flex px-2 sm:px-3 py-1 text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800',
+        'active' => 'inline-flex px-2 sm:px-3 py-1 text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800',
+        'completed' => 'inline-flex px-2 sm:px-3 py-1 text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800',
+        'canceled' => 'inline-flex px-2 sm:px-3 py-1 text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800'
+    ];
+    
+    return $status_colors[strtolower($status)] ?? 'inline-flex px-2 sm:px-3 py-1 text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800';
 }
+
 
 function validateEventId($id) {
     // Ensure $id is properly sanitized and converted to integer
