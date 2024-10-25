@@ -245,12 +245,39 @@ if ($stmt) {
                             </div>
 
                             <?php if ($status !== 'completed' && $status !== 'canceled'): ?>
-                                <form action="" method="post" class="mt-4">
-                                    <input type="hidden" name="cancel_registration_id" value="<?php echo $event['registration_id']; ?>">
-                                    <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg mt-3 transition-colors duration-300">
-                                        Cancel Registration
-                                    </button>
-                                </form>
+    <form id="cancelForm-<?php echo $event['registration_id']; ?>" action="" method="post" class="mt-4">
+        <input type="hidden" name="cancel_registration_id" value="<?php echo $event['registration_id']; ?>">
+        <button type="button" onclick="showConfirmationModal(<?php echo $event['registration_id']; ?>)" class="w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg mt-3 transition-colors duration-300">
+            Cancel Registration
+        </button>
+    </form>
+
+    <!-- Modal Box -->
+    <div id="confirmationModal-<?php echo $event['registration_id']; ?>" class="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-lg p-6 w-96">
+            <h2 class="text-lg font-semibold mb-4">Konfirmasi Pembatalan</h2>
+            <p>Apakah Anda yakin ingin membatalkan registrasi ini?</p>
+            <div class="flex justify-end mt-6">
+                <button type="button" onclick="hideConfirmationModal(<?php echo $event['registration_id']; ?>)" class="bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-lg mr-2">
+                    Batal
+                </button>
+                <button type="button" onclick="document.getElementById('cancelForm-<?php echo $event['registration_id']; ?>').submit()" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg">
+                    Ya, Batalkan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showConfirmationModal(id) {
+            document.getElementById('confirmationModal-' + id).classList.remove('hidden');
+        }
+
+        function hideConfirmationModal(id) {
+            document.getElementById('confirmationModal-' + id).classList.add('hidden');
+        }
+    </script>
+
                             <?php endif; ?>
                         </div>
                     </div>
