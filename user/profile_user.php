@@ -1,20 +1,19 @@
 <?php
-session_start();
-require '../includes/db_connect.php'; // Sesuaikan path ini dengan struktur folder Anda
+session_start(); // Pastikan session dimulai
+require '../includes/db_connect.php';
 
 // Dapatkan koneksi database
 $conn = getDBConnection();
 
-// Check if user is logged in
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
+// Cek apakah pengguna telah login dan bukan admin
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'user') {
+    header('Location: ../user/login.php'); // Perbaiki URL untuk mengarahkan ke login yang benar
     exit();
 }
 
-// Fetch user data from database
 $user_id = $_SESSION['user_id'];
 
-// Check if the user is admin or user and fetch data accordingly
+// Ambil data pengguna dari tabel 'users'
 $query = "SELECT * FROM users WHERE id = ?";
 $stmt = $conn->prepare($query);
 $stmt->bind_param("i", $user_id);
@@ -22,33 +21,21 @@ $stmt->execute();
 $result = $stmt->get_result();
 $user = $result->fetch_assoc();
 
-// If not found in users, check admin table
+// Jika pengguna tidak ditemukan, arahkan ke login
 if (!$user) {
-    $query_admin = "SELECT * FROM admin WHERE id = ?";
-    $stmt_admin = $conn->prepare($query_admin);
-    $stmt_admin->bind_param("i", $user_id);
-    $stmt_admin->execute();
-    $result_admin = $stmt_admin->get_result();
-    $user = $result_admin->fetch_assoc();
-
-    // If user data not found in both tables
-    if (!$user) {
-        echo "User data not found.";
-        exit();
-    }
-
-    // Set role for admin
-    $user['is_admin'] = 1; // assuming admin has is_admin set to 1
+    session_destroy();
+    header('Location: ../user/login.php'); // Perbaiki URL
+    exit();
 }
 
-// Handle profile update
+// Tangani pembaruan profil
 $update_success = false;
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $name = sanitizeInput($_POST['name']);
     $email = sanitizeInput($_POST['email']);
     $password = $_POST['password'];
 
-    // Validate input and update user data
+    // Update data pengguna
     $query = "UPDATE users SET name = ?, email = ?" . (!empty($password) ? ", password = ?" : "") . " WHERE id = ?";
     $stmt = $conn->prepare($query);
     if (!empty($password)) {
@@ -60,13 +47,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($stmt->execute()) {
         $update_success = true;
-        // Refresh user data
+        // Refresh data pengguna
         $user['name'] = $name;
         $user['email'] = $email;
     }
 }
 
-// Fetch event registration history
+// Ambil riwayat pendaftaran event
 $query_events = "SELECT events.name AS event_name, registrations.registration_date
                  FROM registrations
                  JOIN events ON events.id = registrations.event_id
@@ -75,7 +62,6 @@ $stmt_events = $conn->prepare($query_events);
 $stmt_events->bind_param("i", $user_id);
 $stmt_events->execute();
 $result_events = $stmt_events->get_result();
-
 ?>
 
 <!DOCTYPE html>
@@ -88,7 +74,7 @@ $result_events = $stmt_events->get_result();
 </head>
 <body class="bg-gray-100 p-6">
     <div class="max-w-2xl mx-auto bg-white p-6 rounded-md shadow-md">
-        <h1 class="text-2xl font-bold mb-4">Profile</h1>
+        <h1 class="text-2xl font-bold mb-4">User Profile</h1>
 
         <?php if ($update_success): ?>
             <div class="bg-green-100 text-green-800 p-2 rounded mb-4">
@@ -96,7 +82,7 @@ $result_events = $stmt_events->get_result();
             </div>
         <?php endif; ?>
 
-        <form action="profile.php" method="POST" class="space-y-4">
+        <form action="profile_user.php" method="POST" class="space-y-4">
             <div>
                 <label for="name" class="block text-sm font-medium">Name:</label>
                 <input type="text" id="name" name="name" value="<?= escapeOutput($user['name']) ?>" class="w-full mt-1 p-2 border rounded-md" required disabled>
@@ -128,19 +114,17 @@ $result_events = $stmt_events->get_result();
                     <?php endwhile; ?>
                 </ul>
             <?php else: ?>
-                <p class="text-gray-500">WKWKWKWK ga daftar event, bokek ya?.</p>
+                <p class="text-gray-500">Tidak ada event yang terdaftar.</p>
             <?php endif; ?>
         </div>
 
         <div class="mt-4">
-    <a href="<?php echo $user['is_admin'] ? '../admin/dashboard_admin.php' : 'dashboard_user.php'; ?>" class="inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Back to Dashboard</a>
-</div>
-
+            <a href="dashboard_user.php" class="inline-block bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Back to User Dashboard</a>
+        </div>
     </div>
 
     <script>
         document.getElementById('editBtn').addEventListener('click', function() {
-            // Enable the input fields and show the update button
             document.querySelectorAll('input').forEach(input => {
                 input.disabled = false;
             });

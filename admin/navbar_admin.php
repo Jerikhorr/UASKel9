@@ -1,9 +1,11 @@
 <?php
-// Check if user is logged in and is an admin
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'admin') {
+// Check if user is logged in and get their role
+if (!isset($_SESSION['user_id'])) {
     header("Location: ../user/login.php");
     exit();
 }
+
+$is_admin = ($_SESSION['role'] === 'admin');
 
 // Function to check if current page matches the given path
 function isCurrentPage($path) {
@@ -17,23 +19,15 @@ function isCurrentPage($path) {
         <div class="flex items-center justify-between h-16">
             <!-- Left side: Logo and Dashboard text -->
             <div class="flex items-center">
+                <!-- Logo placeholder - replace src with your actual logo path -->
                 <a href="dashboard_admin.php" class="flex items-center">
                     <img src="../logo/logoUAS.png" alt="Logo" class="h-12 w-12 mr-3">
-                    <span class="text-white text-xl font-bold">Admin Dashboard</span>
+                    <span class="text-white text-xl font-bold"><?php echo $is_admin ? 'Admin' : 'User'; ?> Dashboard</span>
                 </a>
             </div>
 
-            <!-- Mobile menu button -->
-            <div class="flex md:hidden">
-                <button id="mobile-menu-btn" class="text-white focus:outline-none">
-                    <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                </button>
-            </div>
-
-            <!-- Right side: Navigation links (hidden on mobile by default) -->
-            <div class="hidden md:flex items-center space-x-4">
+            <!-- Right side: Navigation links -->
+            <div class="flex items-center space-x-4">
                 <a href="event_management.php" 
                    class="<?php echo isCurrentPage('event_management.php'); ?> text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
                     Event Management
@@ -47,11 +41,6 @@ function isCurrentPage($path) {
                 <a href="../user/profile.php" 
                    class="<?php echo isCurrentPage('profile.php'); ?> text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
                     Profile
-                </a>
-                
-                <a href="user_management.php" 
-                   class="<?php echo isCurrentPage('user_management.php'); ?> text-white px-3 py-2 rounded-md text-sm font-medium hover:bg-blue-700 transition duration-150 ease-in-out">
-                    User Management
                 </a>
 
                 <!-- Logout button -->
@@ -92,12 +81,3 @@ function isCurrentPage($path) {
         </a>
     </div>
 </nav>
-
-<script>
-    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-    const mobileMenu = document.getElementById('mobile-menu');
-
-    mobileMenuBtn.addEventListener('click', () => {
-        mobileMenu.classList.toggle('hidden');
-    });
-</script>

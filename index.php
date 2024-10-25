@@ -18,7 +18,7 @@ LEFT JOIN (
     GROUP BY 
         event_id
 ) r ON e.id = r.event_id
-ORDER BY 
+ORDER BY    
     CASE 
         WHEN e.status = 'active' THEN 1
         WHEN e.status = 'upcoming' THEN 2
@@ -26,6 +26,8 @@ ORDER BY
     END,
     e.date ASC";
 
+$query = "SELECT * FROM events";
+$result = mysqli_query($conn, $query);
 
 $result_events = mysqli_query($conn, $query_events);
 mysqli_close($conn);
@@ -186,14 +188,8 @@ mysqli_close($conn);
                     }
                 ?>
                     <div class="event-card rounded-xl">
-                        <?php if($event['banner']): ?>
-                            <div class="overflow-hidden">
-                                <img src="<?php echo htmlspecialchars($event['banner']); ?>" 
-                                    class="banner-image" 
-                                    alt="Event banner">
-                            </div>
-                        <?php endif; ?>
-                        
+
+
                         <div class="p-6">
                             <h2 class="text-xl font-bold mb-3 text-gray-900">
                                 <?php echo htmlspecialchars($event['name']); ?>
